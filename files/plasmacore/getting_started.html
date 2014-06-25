@@ -1,0 +1,213 @@
+<html>
+<head>
+  <title>Getting Started With Plasmacore</title>
+  <style type="text/css">
+    .comment { color: rgb(0,192,192); font-style:italic; }
+    .keyword { color: rgb(0,144,144); }
+    .structure { color: rgb(0,64,64); font-weight: bold; }
+    .member_category { color: rgb(0,128,128); font-weight:bold; }
+    .directive { background-color: rgb(192,255,255); }
+    .literal  { color: rgb(0,144,144); }
+    .datatype,.category { color: rgb(0,0,0); background-color:rgb(224,255,255) }
+    .pad16{padding-left:16;}
+    .pad48{padding-left:48;}
+    .pad80{padding-left:80;}
+    table.indented 
+    {
+      width: 100%;
+      border-style: none;
+      background-color: rgb(255,255,255);
+      border-color: rgb(0,0,255);
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    table.section 
+    {
+      width: 100%;
+      border-width: thin thin thin thin;
+      border-spacing: 0px;
+      border-style: solid;
+      border-color: black black black black;
+      border-collapse: separate;
+      background-color: rgb(255,255,255);
+    }
+    table.section th 
+    {
+      border-width: thin thin thin thin;
+      padding: 3px 3px 3px 3px;
+      border-style: solid;
+      border-color: black;
+      background-color: rgb(224,224,255);
+      color: black;
+      text-align: left;
+      font-size: 1.25em;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    .tdsection
+    {
+      border-width: thin thin thin thin;
+      padding: 16px;
+      border-style: solid;
+      border-color: black;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    .docheader { font-size: 2.00em; }
+    h1 { font-size: 1.30em; }
+    h2 { font-size: 1.20em; }
+    h3 { font-size: 1.10em; }
+    h4 { font-size: 1.00em; }
+    .solidhr { border-style: solid; color: rgb(224,224,224); background-color: rgb(224,224,224); height: 1px; }
+    .indented tt { font-family: lucida console; }
+    .code tt { font-family: lucida console; font-weight: normal; }
+    table.code 
+    {
+      width: 95%;
+      border-width: 2px 2px 2px 2px;
+      border-spacing: 0px;
+      border-style: none;
+      border-color: black;
+      border-collapse: separate;
+      background-color: rgb(248,255,255);
+      color: black;
+    }
+    table.code th 
+    {
+      border-width: thin;
+      padding: 0px;
+      border-style: none;
+      border-color: black;
+      background-color: white;
+      color: black;
+      text-align: left;
+      font-size: 1.00em;
+      font-weight: bold;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    table.code td 
+    {
+      border-width: thin thin thin thin;
+      padding: 3px 3px 3px 3px;
+      border-style: solid; 
+      border-color: black;
+      background-color: rgb(248,255,255);
+      color: black;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+  </style>
+</head>
+<body vlink=#0000ff style='width:800; font-family: arial; background-color: rgb(96,96,96);'>
+<table class='section'><th align=left><table cellspacing=0 cellpadding=0 border=0 style='border-style: none; width: 100%'><tr><td style='border-style: none;'><span class='docheader'>Getting Started With Plasmacore</span></td><td style='border-style: none; text-align: right; font-weight: bold;'>v0.23 / 2008.10.17 / Abe Pralle</td></tr></table></th><tr><td class='tdsection'>
+
+<p><h1>Contents</h1><dl><dd>
+<p><b><a href="#1.  Setup">1.  Setup</a></b><br>
+<span class="pad16"><a href="#1.1. Windows">1.1. Windows</a></span><br>
+<span class="pad48"><a href="#1.1.1.  Command Line Builds">1.1.1.  Command Line Builds</a></span><br>
+<span class="pad48"><a href="#1.1.2.  Eclipse Plug-In">1.1.2.  Eclipse Plug-In</a></span><br>
+<p><b><a href="#2.  Starting a Project">2.  Starting a Project</a></b><br>
+<span class="pad16"><a href="#2.1.  On the Command Line">2.1.  On the Command Line</a></span><br>
+<span class="pad16"><a href="#2.2.  Through Eclipse">2.2.  Through Eclipse</a></span><br>
+<p><b><a href="#3.  Updating a Project">3.  Updating a Project</a></b><br>
+</dl></td></tr></table>
+
+<p>
+<p><!--------------------------->
+<a name="1.  Setup"></a>
+<table class='section'><th>1.  Setup</th><tr><td class='tdsection'>
+
+<p>
+<a name="1.1. Windows"></a>
+
+<h2>1.1. Windows</h2>
+<p>
+<a name="1.1.1.  Command Line Builds"></a>
+
+<h3>1.1.1.  Command Line Builds</h3>
+Download the latest Slag Plasmacore distribution from:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+http://plasmaworks.com/plasmacore <br>
+</tt></tt></td></tr></table></dd></dl>
+and unzip it to the desktop or the Program Files folder.
+<p>
+Install the ANT build system from:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+http://ant.apache.org/ <br>
+</tt></tt></td></tr></table></dd></dl>
+and add it to the system path so you can compile from the command line.  To do this, right-click "My Computer" (Windows XP) or "Computer" (Windows Vista) and pick Properties.  Then select Advanced-&gt;Environment Variables and add a system variable called "ANT_HOME" which is set to "C:\Program Files\apache-ant-1.7.0" (or similar).  Then modify the "Path" environment variable and add this to the front of what's there: "%ANT_HOME%\bin;".  Finally, ensure that there is an environment variable called "JAVA_HOME" that is set to a Java SDK install such as "c:\Program Files\Java\jdk1.6.4".
+<p>
+To build the demos (which ship without necessary binaries), open a command line prompt in the Plasmacore folder.  Type "ant" and press ENTER.  The build file will assemble the necessary pieces for each demo project.  Then CD into each "demos" subfolder and type "ant" again to build and run that particular demo.
+<p>
+Use your favorite text editor to edit Slag code.  Vim and TextPad syntax highlighting files are available from the Plasmacore website.
+<p>
+<p>
+<a name="1.1.2.  Eclipse Plug-In"></a>
+<br>
+
+<h3>1.1.2.  Eclipse Plug-In</h3>
+To use the SlagEdit Eclipse plug-in developed by Jacob Stevens, follow the instructions here:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+http://www.rivermanmedia.com/slagedit/info.html</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="2.  Starting a Project"></a>
+<table class='section'><th>2.  Starting a Project</th><tr><td class='tdsection'>
+
+<p>
+<a name="2.1.  On the Command Line"></a>
+
+<h2>2.1.  On the Command Line</h2>
+<ul>
+  <li> Copy the entire "starter_project" folder to wherever you would like your project to permanently reside (you can rename it).<br>
+<p>
+  <li> Rename "data/sample_settings.txt" to "data/settings.txt" and edit it as desired.<br>
+<p>
+  <li> Rename "sample_build.xml" to "build.xml".  Change the project name at the top from "game" to whatever you would like.<br>
+<p>
+  <li> Add the following main file to the src/ directory - it should have the same name as your project.  If your project is named "game", you would call the main file "game.slag".  The class name within the file does not have to match anything else.<br>
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+# game.slag / yyyy.mm.dd by Your Name<br>
+[include "plasmacore.slag"]<br>
+[mainClass MyRadGame]<br>
+<br>
+class MyRadGame : Application<br>
+&nbsp;&nbsp;METHODS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;method init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# one-time setup<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;method update:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# called 60 times per second<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;method draw:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# called up to 60 times per second<br>
+endClass</tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> Refer to the Plasmacore Reference, the Slag Primer, the demo files, and online How-To resources for programming guidance.<br>
+  <li> Add PNG and JPG images, OGG and WAV sounds, and other files to the data/ subdirectory.<br>
+  <li> Run "ant" from the command line to build and test your game.<br>
+  <li> The <i>dist/</i> folder now contains the publishable executable game and data files.<br>
+<i></i>
+<p>
+<a name="2.2.  Through Eclipse"></a>
+<br>
+
+<h2>2.2.  Through Eclipse</h2>
+Follow the instructions on the SlagEdit plug-in site:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+http://www.rivermanmedia.com/slagedit/info.html</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="3.  Updating a Project"></a>
+<table class='section'><th>3.  Updating a Project</th><tr><td class='tdsection'>
+
+Take the "starter_project" folder from the most recent release of Plasmacore and copy it on top of your existing project.  You can "replace all" - there are no files in "starter_project" that would overwrite any of the files you created for your game.
+<p>
+</td></tr></table>
+
+</body>

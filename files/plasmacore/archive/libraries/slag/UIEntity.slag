@@ -1,0 +1,1532 @@
+[include "Entity.slag"]
+#{******************************************************************************
+  
+  TODO:
+    Design:
+      use the simplest names for your most common types 
+        f.e. a label that exands to a multiline label, has a justification,
+          and maybe padding - should be called Label
+        f.e. a button with an image and a label should be called Button
+        superclass types of those more common elements should use more
+          specific naming 
+          f.e. a label that's a parent of Label but only one line
+            should be called SingleLineLabel
+        etc.
+        
+      use defaults where logical
+      clean up constructors  
+      add handle and position to UIEntity
+      normalize naming convention
+      
+      should UIEntity have on( MouseEvent ) and on( KeyEvent )??
+      
+    UI functions
+      use with anonymous classes
+      send parent or target
+      use macro template
+      use inputDispatcher/inputListener
+  
+******************************************************************************}#
+
+#{==============================================================================
+
+  Override application so we can automatically call the ui 
+    update, draw, and ons without the programmer having to in Screen
+    or with prior
+    
+==============================================================================}#
+overlaying augment Application 
+
+    method update:
+      forEach (i in 0..<screens.count) screens[i].update_ui
+
+    method draw:
+      forEach (i in 0..<screens.count) screens[i].draw_ui
+
+    method on( MouseEvent e ):
+      forEach (i in 0..<screens.count) screens[i].on_ui(e)
+
+    method on( KeyEvent e ):
+      forEach (i in 0..<screens.count) screens[i].on_ui(e)
+
+    # method on( AccelerationEvent e ):
+      # forEach (i in 0..<screens.count) screens[i].on(e)
+
+    # method on( SystemEvent e ):
+      # forEach (i in 0..<screens.count) screens[i].on(e)
+
+endAugment
+
+
+#{==============================================================================
+
+  Augment screen so we can include the methods called in Application above
+    and add a list of UIEntities (which can also be used as a general
+    EntityList)
+    
+  You can change the flag UI_last so that the ui list is updated, draw,
+    and handles Events after or before what the programmer calls in
+    Screen.update, .draw, and .on
+    (maybe better to split this up further into sep flags for each later on)
+
+==============================================================================}#
+overlaying augment Screen
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    UIList( true ) : EntityList 
+    UI_last = true : Logical
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method update_ui:
+      # println( "screen update_ui" )
+      if( UI_last ) update; UIList.update
+      else UIList.update; update
+    
+    #---------------------------------------------------------------------  
+    method draw_ui:
+      # println( "screen draw_ui: " + UIList.count )
+      if( UI_last ) draw; UIList.draw
+      else UIList.draw; draw
+      
+    #---------------------------------------------------------------------  
+    method on_ui( KeyEvent event ):
+      if( UI_last ) on( event ); UIList.on( event )
+      else UIList.on( event ); on( event )
+
+    method on_ui( MouseEvent event ):
+      if( UI_last ) on( event ); UIList.on( event )
+      else UIList.on( event ); on( event )
+
+    # method on( AccelerationEvent event ):
+      # if( UI_first ) UIList.on( event ); insertUnderlying
+      # else insertUnderlying; UIList.on( event )
+
+    # method on( SystemEvent event ):
+      # if( UI_first ) UIList.on( event ); insertUnderlying
+      # else insertUnderlying; UIList.on( event )
+
+endAugment
+
+
+#{==============================================================================
+
+  Finally Augment EntityList to handle ons
+  (maybe better to subclass EntityList to UIEntityList later on)
+
+==============================================================================}#
+augment EntityList
+
+  #-------------------------------------------------------------------------
+  method on( KeyEvent event ):
+    forEach( entity in this ) 
+      if( entity instanceOf UIEntity ) entity.(UIEntity).on( event )
+    endForEach
+
+  method on( MouseEvent event ):
+    forEach( entity in this ) 
+      if( entity instanceOf UIEntity ) entity.(UIEntity).on( event )
+    endForEach
+    
+endAugment
+
+
+#{==============================================================================
+
+  Base class for all ui controls (not named 'control' so we can stay out of the
+    user/programmers more common namespaces)
+  Responsible mainly for:
+    holding target (the target of control functions - 
+      IOW: pressing a button would call something in target)
+    position and size
+      on_bounds_change - is called when position or size is changed
+        and sent the pos/size difference in Box form - should allow the 
+        programmer to respond to and track resize events
+    being enabled/visible
+    splitting draw into base drawing routines
+      draw_enabled - what draws normally
+      draw_pressed - drawn when the mouse is down over the control
+      draw_over - drawn when the mouse is over the control but not down
+      draw_disabled - drawn when the control is disabled
+    responding to on( Event )/input - but not what to do with the input
+      on_enter - called when the mouse enters a control
+      on_exit - when the mouse exits
+      on_pressed - called when the user FIRST presses the control (either button)
+      on_released - called when the user releases (OVER) the control
+      on_wheel_up, on_wheel_down - when the wheel is manip'd OVER the control
+      on( KeyEvent ) - all UIEntities receive keys - override to change
+ 
+ 
+==============================================================================}#
+class UIEntity : Entity
+
+  CLASS_PROPERTIES
+    DEBUGGING = true : Logical
+    disabled_color( Color.gray ) : Color
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    # bucket for the functional target - !needs a cast
+    target : Object
+
+    handle : Handle
+    bounds : Box
+    
+    enabled = true : Logical
+    visible = true : Logical
+    
+    # these allow checking in updates / polling
+    is_mouse_over = false : Logical
+    is_mouse_button_down = false : Logical
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method init( bounds ):
+    method init( target, bounds ):
+    
+    #---------------------------------------------------------------------  
+    method init( Vector2 initial_size ):
+      init( Box( bounds.position, initial_size ) )
+    method init( target, Vector2 initial_size ):
+      init( Box( bounds.position, initial_size ) )
+    
+    #---------------------------------------------------------------------
+    method bounds( Box new_bounds ): 
+      # println( "setting bounds: " + new_bounds )
+      local Box old_bounds = &bounds
+      
+      #TODO # not sure this works with absolute handles
+      local Handle old_handle = &handle
+      # println( "  handle.relative_position: " + &handle.relative_position )
+      if( &handle.relative_position != Handle.absolute ) 
+        &handle = Handle( &handle.relative_position, new_bounds.size )
+        # println( "  bounds change altering handle: " + &handle )
+      endIf
+      new_bounds += ( old_handle.offset - handle )
+      
+      &bounds = new_bounds
+      # fire event handler on position or size change
+      on_bounds_change( new_bounds - old_bounds )
+
+    method position.Vector2: return bounds.position
+    method position( Vector2 new_position ): 
+      bounds = Box( new_position, size )
+      
+    method size.Vector2: return bounds.size
+    method size( Vector2 new_size ): bounds = Box( bounds.position, new_size )
+    
+    method width.Real64: return bounds.width
+    method width( Real64 new_width ): 
+      bounds = Box( bounds.position.x, bounds.position.y,
+        new_width, bounds.size.y )
+        
+    method height.Real64: return bounds.height
+    method height( Real64 new_height ):
+      bounds = Box( bounds.position.x, bounds.position.y,
+        bounds.size.x, new_height )
+      
+    # alias for the plasmacore bounds name
+    method bounding_box.Box: return bounds
+    method bounding_box( Box new_bounds ): bounds = new_bounds
+    
+    #---------------------------------------------------------------------
+    method on_bounds_change( Box delta ):
+      # event for handling size or position change
+      # println( "on_bounds_change: " + delta )
+    
+    #---------------------------------------------------------------------
+    #TODO # these could use some editing, testing...could be more concise
+    # esp in rel to bounds change - chicken v. egg
+    
+    method handle( Handle new_handle ):
+      # set to new handle and alter bounds based on it
+      # println( "handle from handle: " + new_handle )
+      local Vector2 old_handle_offset = handle
+      
+      if( new_handle.relative_position == Handle.absolute ) &handle = new_handle
+      else &handle = Handle( new_handle.relative_position, bounds.size )
+      
+      bounds = Box( bounds.position + old_handle_offset - handle, size )
+      
+    method handle( Vector2 offset ): 
+      # println( "handle from offset: " + offset )
+      handle = Handle( offset, Handle.absolute )
+      
+    method handle( Int32 relative_position ):
+      # println( "handle from rel pos: " + relative_position )
+      handle = Handle( Vector2.zero, relative_position )
+      
+    method handle.Vector2: return &handle.offset  
+      
+    #---------------------------------------------------------------------
+    method center_horizontally_in( Real64 width ):
+      center_horizontally_in( 0, width )
+      
+    method center_horizontally_in( Real64 x1, Real64 x2 ):
+      bounds = Box( ( ( x2 - x1 ) - bounds.width ) / 2 + x1,
+        bounds.y1, bounds.width, bounds.height )
+    
+    #---------------------------------------------------------------------
+    method center_vertically_in( Real64 height ):
+      center_vertically_in( 0, height )
+      
+    method center_vertically_in( Real64 y1, Real64 y2 ):
+      bounds = Box( bounds.x1, ( ( y2 - y1 ) - bounds.height ) / 2 + y1,
+        bounds.width, bounds.height )
+    
+    #---------------------------------------------------------------------
+    method center_in( Box box ):
+      bounds = Box( ( box.width  - bounds.width )  / 2 + box.x1,
+                    ( box.height - bounds.height ) / 2 + box.y1,
+                    bounds.width, bounds.height )
+    
+    #---------------------------------------------------------------------
+    method center_in( Vector2 size ): center_in( Box( 0, 0, size.x, size.y ) )
+    method center_in_Display: center_in( Display.size )
+    
+    #---------------------------------------------------------------------  
+    method contains( Vector2 point ).Logical:
+      if( bounds.contains( point ) ) return true
+      return false
+      
+    #---------------------------------------------------------------------  
+    method enabled( Logical new_enabled ):
+      if( new_enabled == false )
+        is_mouse_over = false; is_mouse_button_down = false;
+      endIf
+      &enabled = new_enabled
+      
+    #---------------------------------------------------------------------  
+    method visible( Logical new_visible ):
+      if( new_visible == false )
+        is_mouse_over = false; is_mouse_button_down = false;
+      endIf
+      &visible = new_visible
+    
+    #---------------------------------------------------------------------  
+    method update:
+      # println( "" + this + ".update" )
+    
+    #---------------------------------------------------------------------  
+    method on( MouseEvent e ):
+      # mouse behaviour for standard UIEntity
+      if( ( enabled ) and ( visible ) )
+
+        # this system doesn't play nicely with relative movement, ATM
+        if( e.type == MouseEvent.relative_movement )
+            
+        elseIf( not contains( Input.mouse_position ) )
+          if( is_mouse_over? ) 
+            is_mouse_button_down = false
+            is_mouse_over = false
+            on_exit( e )
+          endIf
+      
+        else
+          if( not is_mouse_over? ) is_mouse_over = true; on_enter( e )
+          
+          which( e.type )
+            case MouseEvent.button_press:
+              # println( "MouseEvent.button_press" )
+              is_mouse_button_down = true
+              on_pressed( e )
+              
+            case MouseEvent.button_release:
+              # println( "MouseEvent.button_release" )
+              is_mouse_button_down = false
+              on_released( e )
+              
+            case MouseEvent.wheel_up:
+              # println( "MouseEvent.wheel_up" )
+              on_wheel_up( e )
+              
+            case MouseEvent.wheel_down:
+              # println( "MouseEvent.wheel_down" )
+              on_wheel_down( e )
+              
+          endWhich
+        endIf
+      endIf
+
+    #---------------------------------------------------------------------  
+    method on_enter( MouseEvent e ):
+    method on_exit( MouseEvent e ):
+    method on_pressed( MouseEvent e ):
+    method on_released( MouseEvent e ):
+    method on_wheel_up( MouseEvent e ):
+    method on_wheel_down( MouseEvent e ):
+  
+    #---------------------------------------------------------------------  
+    method on( KeyEvent e ):
+      # println( "" + this + " handling key event: " + e )
+    
+    #---------------------------------------------------------------------  
+    method draw:
+      # draw behaviour for standard UIEntity
+      # - only draw visible controls
+      # - split draw behaviour based on enabled flag
+      # - if this entity has children - draw them
+      if( visible )
+        
+        if( is_mouse_over )
+          if( is_mouse_button_down ) draw_pressed
+          else draw_over
+        
+        elseIf( enabled )  
+          draw_enabled
+          
+        else
+          draw_disabled
+        endIf
+        
+        if( DEBUGGING ) 
+          Circle( position + handle, 2 ).draw( Color.cyan )
+          bounds.draw( Color.gray )
+        endIf
+      endIf
+    
+    #---------------------------------------------------------------------  
+    # override these for visual ui feedback to the user
+    method draw_enabled:
+    method draw_pressed:  draw_enabled  
+    method draw_over:     draw_enabled
+    method draw_disabled: draw_enabled
+    
+    #---------------------------------------------------------------------  
+    method to_String.String:
+      return "(" + runtime_type + ":" + bounds + ")"
+    
+endClass
+
+#{==============================================================================
+
+  UIContainers alter the position of UIEntities that are attached to them
+    (any UIEnt can 'contain' controls)
+  Generally, provides no function in itself - but passes input to its
+    children (but could provide function, if ya want)
+  Dispatches on( MouseEvent ) to kids if the pointer is INSIDE the container
+  To filter key commands between containers (ie. a certain window/container
+    will use key commands and not ALL of them) - see the Focusable aspect
+    
+==============================================================================}#
+class UIContainer : UIEntity
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method attach( UIEntity new_child ).UIContainer:
+      adjust_child_to_parent( new_child )
+      prior.attach( new_child )
+      # println( "children.count = " + children.count )
+      return this
+      
+    #---------------------------------------------------------------------  
+    method adjust_child_to_parent( UIEntity child ):
+      # alter bounds based on parent bounds (relative to parent)
+      #   IOW, a child at 8,8 of a UIContainer at 20,20
+      #     will be placed on the screen at 28,28
+      child.bounds = child.bounds + bounds.position
+      # println( "adj child bounds = " + child.bounds )
+      child.visible = visible
+      child.enabled = enabled
+      
+    #---------------------------------------------------------------------  
+    method bounds( Box new_bounds ):
+      # override the setter for bounds to move the children as well
+      local Vector2 pos_diff( new_bounds.x1 - bounds.x1, 
+                              new_bounds.y1 - bounds.y1 )
+      prior.bounds( new_bounds )
+      if( children? ) 
+        forEach( entity in children ) 
+          if( entity instanceOf UIEntity ) entity.(UIEntity).bounds += pos_diff
+        endForEach
+      endIf
+          
+    #---------------------------------------------------------------------  
+    method enabled( Logical new_enabled ):
+      # println( "UIContainer.enabled: " + new_enabled )
+      # overridden setter to enable/disable all child elements as well
+      dispatch_enabled( new_enabled )
+      
+    method dispatch_enabled( Logical new_enabled ):
+      # dispatch to enable/disable all child elements as well
+      #NOTE # this doesn't preserve enabled values of children set before
+      # changing the container's enabled value. IOW, if you've set a child
+      # ui to not enabled, disable the container, and re-enable the container,
+      # that child will become enabled as well
+      if( enabled == new_enabled ) return 
+      &enabled = new_enabled
+      
+      if( children? )
+        forEach( entity in children ) 
+          if( entity instanceOf UIEntity ) entity.(UIEntity).enabled = new_enabled
+        endForEach
+      endIf
+
+    #---------------------------------------------------------------------  
+    method visible( Logical new_visible ):
+      # similar to enabled above with the visible flag
+      dispatch_visible( new_visible )
+    
+    method dispatch_visible( Logical new_visible ):
+      if( visible == new_visible ) return 
+      &visible = new_visible
+      
+      if( children? )
+        forEach( entity in children )
+          if( entity instanceOf UIEntity ) entity.(UIEntity).visible = new_visible
+        endForEach
+      endIf
+
+    #---------------------------------------------------------------------  
+    method on( MouseEvent e ):
+      # mouse behaviour for standard Container - dispatch to children
+      if( ( enabled ) and ( visible ) )
+
+        # this system doesn't play nicely with relative movement, ATM
+        if( e.type == MouseEvent.relative_movement )
+            
+        elseIf( not contains( Input.mouse_position ) )
+          if( is_mouse_over? ) 
+            is_mouse_over = false
+            on_exit( e )
+          endIf
+      
+        else
+          if( not is_mouse_over? ) is_mouse_over = true; on_enter( e )
+          
+          # dispatch to children
+          if( children? )
+            forEach( child in children ) 
+              if( child instanceOf UIEntity ) child.(UIEntity).on( e )
+            endForEach
+          endIf
+          
+        endIf
+      endIf
+
+    #---------------------------------------------------------------------  
+    method on( KeyEvent e ):
+      # key behaviour for standard Container - dispatch to children
+      if( ( enabled ) and ( visible ) and ( children? ) )
+        forEach( child in children ) 
+          if( child instanceOf UIEntity ) child.(UIEntity).on( e )
+        endForEach
+      endIf
+
+    
+endClass
+
+#{==============================================================================
+
+  Used in the Horizontal and VerticalUIContainers to 'push' buttons 
+    away from one another. For example:
+      given a horizontal container:
+        container = HorizontalUIContainer( Box( 8, 8, 400, 48 ) )
+   
+      the following causes ui2 to be on the left of the container (default)
+        container.attach( ui2 )
+      compared to this which would have ui2 on the right of the container  
+        container.attach( Spacer() ).attach( ui2 )
+
+      the next would place ui2 in the center
+        container.attach( Spacer() ).attach( ui2 ).attach( Spacer() )
+      and this would evenly space ui1 and ui2 in the container
+        container.attach( Spacer() ).attach( ui1 ).attach( Spacer() ).
+          attach( ui2 ).attach( Spacer() )
+
+==============================================================================}#
+class Spacer() : UIEntity
+  # the following make Spacers invisible
+  method draw_enabled: 
+  method draw_pressed:  draw_enabled
+  method draw_over:     draw_enabled
+  method draw_disabled: draw_enabled
+endClass    
+
+#{==============================================================================
+
+  Places child controls in a horizontal row
+  Uses the attached child control's y but calcs its x based on the 
+    previously attached child controls
+  also ensures there are 'padding' number of pixels between those controls
+
+==============================================================================}#
+class HorizontalUIContainer : UIContainer
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    padding = 8 : Real64
+    last_child_x = padding : Real64
+    center_children_vertically = true : Logical
+    number_Spacers = 0 : private Int32
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method attach( UIEntity new_child ).Entity:
+      if( new_child instanceOf Spacer ) number_Spacers++
+      # adjust_child_to_parent( new_child )
+      prior.attach( new_child )
+      reposition_children
+      return this
+      
+    #---------------------------------------------------------------------  
+    method adjust_child_to_parent( UIEntity child ):
+      # println( "" + this + ".adjust_child_to_parent: " + child )
+      # println( "  last_child_x = " + last_child_x )
+
+      if( center_children_vertically ) child.center_vertically_in( bounds.height )
+        
+      # use the x we calc'd from the last child added and adjust for position
+      #NOTE # effectively ignores the x setting for the child
+      child.bounds = Box( 
+        bounds.position.x + last_child_x, 
+        bounds.position.y + child.bounds.position.y,
+        child.bounds.width, child.bounds.height )
+        
+      # set up last_child_x for the next control we add
+      last_child_x = child.bounds.x2 + padding - bounds.position.x 
+      # println( "  new last_child_x = " + last_child_x )
+      
+      child.visible = visible
+      child.enabled = enabled
+      
+    #---------------------------------------------------------------------  
+    method reposition_children:
+      #TODO # not an ideal way of doing this
+      # println( "" + this + ".reposition_children" )
+      # println( "  number_Spacers = " + number_Spacers )
+      
+      local Int32 number_non_Spacers = children.count - number_Spacers
+      
+      local Real64 children_width
+      forEach( child in children )
+        if( ( child instanceOf UIEntity ) and 
+            ( child notInstanceOf Spacer ) ) 
+          children_width += child.(UIEntity).width + padding
+        endIf
+      endForEach
+      children_width += padding
+      # println( "  children_width = " + children_width )
+      
+      local Real64 spacer_width = 
+        ( bounds.width - children_width ) / number_Spacers
+      # println( "  spacer_width = " + spacer_width )
+      local Real64 currX = bounds.x1
+      forEach( child in children )
+        if( child instanceOf UIEntity ) 
+          local UIEntity childUI = child.(UIEntity)
+          
+          if( child instanceOf Spacer ) 
+            childUI.bounds = Box( 
+              currX, bounds.y1, spacer_width, bounds.height )
+            currX += spacer_width
+            
+          else
+            childUI.bounds = Box( 
+              currX + padding, childUI.position.y, childUI.width, childUI.height )
+            currX += padding + childUI.width
+          endIf
+        endIf
+        # println( "  currX = " + currX )
+      endForEach
+      
+endClass
+
+#===============================================================================
+class VerticalUIContainer : UIContainer
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    padding = 8 : Real64
+    last_child_y = padding : Real64
+    center_children_horizontally = true : Logical
+    number_Spacers = 0 : private Int32
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method attach( UIEntity new_child ).Entity:
+      if( new_child instanceOf Spacer ) number_Spacers++
+      adjust_child_to_parent( new_child )
+      prior.attach( new_child )
+      reposition_children
+      return this
+      
+    #---------------------------------------------------------------------  
+    method adjust_child_to_parent( UIEntity child ):
+      # println( "" + this + ".adjust_child_to_parent: " + child )
+      # println( "  last_child_x = " + last_child_x )
+
+      if( center_children_horizontally );
+        child.center_horizontally_in( bounds.width )
+        
+      # use the x we calc'd from the last child added and adjust for position
+      #NOTE # effectively ignores the x setting for the child
+      child.bounds = Box( 
+        bounds.position.x + child.bounds.position.x, 
+        bounds.position.y + last_child_y,
+        child.bounds.width, child.bounds.height )
+        
+      # set up last_child_x for the next control we add
+      last_child_y = child.bounds.y2 + padding - bounds.position.y 
+      # println( "  new last_child_x = " + last_child_x )
+      
+      child.visible = visible
+      child.enabled = enabled
+      
+    #---------------------------------------------------------------------  
+    method reposition_children:
+      #TODO # not an ideal way of doing this
+      # println( "" + this + ".reposition_children" )
+      # println( "  number_Spacers = " + number_Spacers )
+      
+      local Int32 number_non_Spacers = children.count - number_Spacers
+      
+      local Real64 children_height
+      forEach( child in children )
+        if( ( child instanceOf UIEntity ) and 
+            ( child notInstanceOf Spacer ) ) 
+          children_height += child.(UIEntity).height + padding
+        endIf
+      endForEach
+      children_height += padding
+      # println( "  children_height = " + children_height )
+      
+      local Real64 spacer_height = 
+        ( bounds.height - children_height ) / number_Spacers
+      # println( "  spacer_width = " + spacer_width )
+      local Real64 currY = bounds.y1
+      forEach( child in children )
+        if( child instanceOf UIEntity ) 
+          local UIEntity childUI = child.(UIEntity)
+          
+          if( child instanceOf Spacer ) 
+            childUI.bounds = Box( 
+              bounds.x1, currY, bounds.width, spacer_height )
+            currY += spacer_height
+            
+          else
+            childUI.bounds = Box( 
+              childUI.position.x, currY + padding, childUI.width, childUI.height )
+            currY += padding + childUI.height
+          endIf
+        endIf
+        # println( "  currY = " + currY )
+      endForEach
+      
+endClass
+
+#{==============================================================================
+
+  UIContainer with a bg image
+    could probably be abstracted to a lower level, eg: 
+      UIContainer.draw_enabled:
+        if( image ) image.draw( position )
+
+==============================================================================}#
+class Window : UIContainer
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    image : Image
+    disabled_image : Image
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method init( Image frame_image, Vector2 pos = Vector2.zero ):
+      image = Image( frame_image )
+      prior.init( Box( pos, image.size ) )
+      
+    method init( target, Image frame_image, Vector2 pos = Vector2.zero ):
+      init( pos, frame_image )
+    #TODO # grayscale disabled image
+    
+    #---------------------------------------------------------------------
+    method enabled( Logical new_enabled ):
+      prior.enabled( new_enabled )
+    
+    #---------------------------------------------------------------------  
+    method draw_enabled: image.draw( position )
+    method draw_pressed: image.draw( position )
+    method draw_over:    image.draw( position )
+    method draw_disabled: 
+      if( disabled_image? ) disabled_image.draw( position )
+      else image.draw( position )
+    
+endClass
+
+#{==============================================================================
+
+  an image button has up to four images:
+    enabled - normal, 
+    pressed - when a mouse button is down over the control,
+    over - when the mouse is over the control but no button down,
+    disabled - when enabled is false
+  all but the enabled are optional
+  and most of the methods below are for loading the images into the class
+    
+==============================================================================}#
+class ImageButton : UIEntity
+
+  CLASS_PROPERTIES
+    DISABLED_IMAGE_COLOR = Color.gray : Color
+  
+  CLASS_METHODS
+    #---------------------------------------------------------------------  
+    method create_disabled_image( Image new_image ).Image:
+      # simply makes a darker copy of the image - override if ya like
+      local Image disabled_image( new_image )
+      disabled_image.color = Color.gray # DISABLED_IMAGE_COLOR <- doesn't work
+      return disabled_image
+  
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    image : Image 
+    pressed_image : Image
+    over_image : Image
+    disabled_image : Image
+  
+  METHODS
+    #---------------------------------------------------------------------  
+    method init( target, image, Vector2 position ):
+      init( target, image, null, null, null, position )
+      
+    method init( target, image, pressed_image, Vector2 position ):
+      init( target, image, pressed_image, null, null, position )
+      
+    method init( target, image, pressed_image, over_image, Vector2 position ):
+      init( target, image, pressed_image, over_image, null, position )
+      
+    method init( target, image, pressed_image, over_image, disabled_image,
+        Vector2 position ):
+      # precond: all images should be the size of the first image
+      prior.init( Box( position, Vector2( image.size ) ) )
+      
+      # see whether any null images were passed 
+      #   and clone the enabled image if necessary
+      if( not pressed_image? ) pressed_image = Image( image )
+      if( not over_image? )    over_image =    Image( image )
+      if( not disabled_image? ) disabled_image = 
+        ImageButton.create_disabled_image( image )
+      
+    #---------------------------------------------------------------------  
+    method init( target, Image[] images, Vector2 position ):
+      # takes the first 4 images from a list and assigns in the order above
+      # there must be at least one image
+      if( images.count < 1 ) throw InvalidOperandError( "images", "" + images )
+      
+      local Image[] imgs( 4, null )
+      forEach( i in 0..< images.count ) imgs[ i ] = images[ i ]
+      init( target, imgs[ 0 ], imgs[ 1 ], imgs[ 2 ], imgs[ 3 ], position )
+
+    #---------------------------------------------------------------------  
+    method init( target, Image imageSheet, Int32 w, Int32 h, Vector2 position ):
+      # splits single image into tiles and calls init above with that list
+      init( imageSheet.split_into_tiles( w, h ), position )
+    
+    #---------------------------------------------------------------------  
+    method draw_enabled:  image.draw( bounds.position )
+    method draw_pressed:  pressed_image.draw( bounds.position )
+    method draw_over:     over_image.draw( bounds.position )
+    method draw_disabled: disabled_image.draw( bounds.position )
+    
+endClass
+
+#{==============================================================================
+
+  Adds a text label to the ImageButton
+    ?: if I move UIContainer into UIEntity, might make this more concise
+        won't help all the inits, tho
+
+==============================================================================}#
+class Button : ImageButton
+
+  PROPERTIES
+    #---------------------------------------------------------------------  
+    label : Label
+    
+  METHODS
+    #---------------------------------------------------------------------  
+    method init( target, String text, image, Vector2 position ):
+      init( target, text, image, null, null, null, position )
+      
+    method init( target, String text, image, pressed_image, Vector2 position ):
+      init( target, text, image, pressed_image, null, null, position )
+      
+    method init( target, String text, image, pressed_image, over_image, 
+        Vector2 position ):
+      init( target, text, image, pressed_image, over_image, null, position )
+      
+    method init( target, String text, image, 
+        pressed_image, over_image, disabled_image, Vector2 position ):
+      # precond: all images should be the size of the first image
+      prior.init( target, image, 
+        pressed_image, over_image, disabled_image, position )
+      label = Label( text, bounds )
+      
+    #---------------------------------------------------------------------  
+    method init( target, String text, Image[] images, Vector2 position ):
+      prior.init( target, images, position )
+      label = Label( text, bounds )
+      
+    #---------------------------------------------------------------------  
+    method init( target, String text, Image imageSheet, Int32 w, Int32 h, 
+        Vector2 position, enabled = true, visible = true ):
+      # splits single image into tiles and calls init above with that list
+      init( target, text, imageSheet.split_into_tiles( w, h ), position )
+    
+    #---------------------------------------------------------------------  
+    method on_bounds_change( Box bounds_diff ):
+      # move the label with the button
+      if( label? ) label.bounds = bounds
+      if( ( bounds_diff.width != 0 ) or ( bounds_diff.width != 0 ) )
+        image.size = bounds.size;
+        pressed_image.size = bounds.size;
+        over_image.size = bounds.size;
+        disabled_image.size = bounds.size;
+      endIf
+
+    #---------------------------------------------------------------------  
+    method draw_enabled:
+      image.draw( position ); label.draw_enabled
+    method draw_pressed:
+      pressed_image.draw( position ); label.draw_enabled
+    method draw_over:
+      over_image.draw( position ); label.draw_enabled
+    method draw_disabled:
+      disabled_image.draw( position ); label.draw_disabled
+
+endClass
+
+
+#{==============================================================================
+
+  SingleLineLabel
+    bounds is determined by the size of the text rendered in the current font
+    bounds will change when:
+      changing position
+      changing text
+      changing font
+ 
+==============================================================================}#
+class SingleLineLabel : UIEntity
+
+  CLASS_PROPERTIES
+    #---------------------------------------------------------------------
+    isDebugging = true : Logical
+    DEFAULT_FONT = null : Font
+
+  PROPERTIES
+    #---------------------------------------------------------------------
+    text : String
+    font : Font
+    
+  METHODS
+    #---------------------------------------------------------------------
+    method init( String new_text, Vector2 new_position, Font new_font = null ):
+      # use desired, default or system font
+      if( new_font? ) 
+        &font = Font( new_font )
+      elseIf( SingleLineLabel.DEFAULT_FONT? ) 
+        &font = SingleLineLabel.DEFAULT_FONT
+      else 
+        &font = Font( SystemFont )
+      endIf
+      
+      &text = new_text
+      local Real64 width = font.text_width_of( text )
+      local Real64 height = font.height
+      # println( "dims = $,$" ( width, height ) )
+      &bounds = Box( new_position, Vector2( width, height ) )
+    
+    #---------------------------------------------------------------------
+    method text( String newText ):
+      &text = newText
+      recalculate_bounds
+      
+    #---------------------------------------------------------------------
+    method recalculate_bounds:
+      bounds = Box( bounds.position, 
+        Vector2( font.text_width_of( text ), font.height ) )
+    
+    #---------------------------------------------------------------------
+    method font( Font newFont ):
+      local Font fontCopy = Font( newFont )
+      
+      #NOTE # that this does have a side effect of using the old handle
+      fontCopy.handle = font.handle
+      
+      &font = fontCopy
+      recalculate_bounds
+    
+    #---------------------------------------------------------------------
+    method color.Color: return font.color
+    method color( Color newColor ): font.color = newColor
+
+    #---------------------------------------------------------------------
+    method draw_disabled: 
+      local Color oldClr = color
+      color = UIEntity.disabled_color
+      draw_enabled
+      color = oldClr
+      
+    #---------------------------------------------------------------------
+    method draw_enabled:
+      font.draw( text, position )
+      
+endClass
+
+
+#{==============================================================================
+
+  Label
+    allows the user to set a specific height and width for the label and
+      if the text width is larger than the desired width, 
+        the text will be split into multiple lines
+      if the text height is larger than the desired height,
+        the text will be 'cropped' at that height, not drawing the last lines
+        
+==============================================================================}#
+class Label : SingleLineLabel
+
+  CLASS_PROPERTIES
+    #---------------------------------------------------------------------
+    isDebugging = false : Logical
+    DEFAULT_FONT = null : Font
+    DEFAULT_JUSTIFICATION = Handle( 9 ) : Handle
+    
+  PROPERTIES
+    #---------------------------------------------------------------------
+    justification = Handle( 9 ) : Handle  # centered
+    line_height : Real64
+      
+    strings : private String[] 
+    strings_height = 0 : private Real64
+    text_position : private Vector2
+    
+  METHODS
+    #---------------------------------------------------------------------
+    method init( String newText, Box newBounds, Font newFont = null ):
+      # use default font or system font
+      prior.init( newText, newBounds.position, newFont )
+      
+      &bounds = newBounds
+      &justification = Label.DEFAULT_JUSTIFICATION
+      line_height = font.height
+      recalculate_strings
+    
+    #---------------------------------------------------------------------
+    method text( String newText ):
+      &text = newText
+      recalculate_strings
+    
+    #---------------------------------------------------------------------
+    method font( Font newFont ):
+      local Font fontCopy = Font( newFont )
+      
+      #NOTE # that this does have a side effect of using the old handle
+      fontCopy.handle = font.handle
+      
+      # preserve the line height (if it's different from the prev font height)
+      local Real64 line_diff = line_height - font.height
+      line_height = fontCopy.height + line_diff
+      
+      &font = fontCopy
+      recalculate_strings    
+      
+    #---------------------------------------------------------------------
+    method recalculate_strings:
+      strings = font.word_wrap( text, width )
+      strings_height = strings.count * line_height
+      
+      # if there are too many strings to fit in the bounds height
+      # remove enough to fit (not touching the text data)
+      local Real64 height_diff = strings_height - height
+      # println( "height diff = " + height_diff )
+      if( height_diff > 0 )
+        local Int32 lines_to_remove = height_diff / line_height + 1
+        # println( "lines_to_remove = " + lines_to_remove )
+        strings.discard_last( lines_to_remove )
+        strings_height = strings.count * line_height
+      endIf
+      # println( "strings_height = " + strings_height )
+      
+      justification = justification
+    
+    #---------------------------------------------------------------------
+    method justification( Int32 relative_position ):
+      # println( "new justify by rel pos = " + relative_position )
+      justification( Handle( Vector2.zero, relative_position ) )
+    
+    #---------------------------------------------------------------------
+    method justification( Handle newJustification ):
+      # handles changing the text drawing position and font handle
+    
+      # println( "new justify = " + newJustification )
+      &justification = newJustification
+      local Real64 textX = bounds.x1
+      local Real64 textY = bounds.y1
+      
+      # don't do anything with an absolute handle - pass it along
+      if( newJustification.relative_position == Handle.absolute )   
+        font.handle = newJustification
+      endIf
+      
+      # take care of the horizontal relationship with the font handle 
+      #   and text_position.x
+      if( newJustification.is_left ) 
+        font.handle = Handle( 1 )
+      elseIf( newJustification.is_right ) 
+        textX = bounds.x2
+        font.handle = Handle( 2 )
+      elseIf( newJustification.is_center ) 
+        textX = bounds.x1 + bounds.width / 2
+        font.handle = Handle( 7 )
+      endIf
+        
+      # handle the vertical relationship btwn text_position and strings_height  
+      if( newJustification.is_bottom ) 
+        textY = bounds.y2 - strings_height
+      elseIf( newJustification.is_middle ) 
+        textY = ( bounds.y1 + bounds.height / 2 ) - ( strings_height / 2 )
+      endIf
+      
+      text_position = Vector2( textX, textY ) - bounds.position
+        
+      # println( "text_position = " + text_position )
+      # println( "font.handle = " + font.handle )
+    
+    #---------------------------------------------------------------------
+    method drawStrings:
+      local Vector2 drawPos = bounds.position + text_position
+
+      forEach( s in strings )
+        font.draw( s, drawPos )
+        drawPos += Vector2( 0, line_height )
+      endForEach
+    
+    #---------------------------------------------------------------------
+    method draw_disabled: draw_enabled
+    method draw_enabled:
+    
+      if( Label.isDebugging )
+        bounds.draw( Color.gray )
+        Circle( position, 2 ).draw( Color.green )
+        Circle( bounds.position + text_position, 2 ).draw( Color.cyan )
+      endIf
+      
+      drawStrings
+      
+endClass
+
+
+#{==============================================================================
+
+  This is a label that can capture and display keyboard input
+    use accept chars and on below to customize this
+    change accepts_newlines to allow/disallow newlines (enter) in the input
+    backspace is used to delete chars
+    
+    currently no text position marker
+    currently no text highlighting or multiple char select/editing
+    currently no copy or pasting
+
+==============================================================================}#
+class TextEntryField : Label
+
+  CLASS_PROPERTIES
+    ACCEPTS_NEWLINES = true : Logical
+    
+  PROPERTIES
+    accepts_newlines = false : Logical
+  
+  METHODS
+    #---------------------------------------------------------------------
+    method init( Box newBounds, String newText, Font newFont = null ):
+      prior.init( newText, newBounds, newFont )
+      
+      #Q # doesn't seem to work
+      accepts_newlines = TextEntryField.ACCEPTS_NEWLINES
+      # println( "" + this + " accepting newlines: " + accepts_newlines )
+      
+    #---------------------------------------------------------------------
+    method on( KeyEvent e ):
+      if( ( not enabled ) or ( not visible ) ) return
+    
+      # println( "" + this + "on: " + e )
+      if( e.type == KeyEvent.press )
+        which( e.keycode )
+          case Key.keycode_backspace:
+            if( text.count > 0 ) text = text[ 0..( text.count - 2 ) ]
+          case Key.keycode_enter:
+            if( accepts_newlines ) text += '\n'
+          others:
+            if( acceptsChar( e.unicode ) ) text += e.unicode
+        endWhich
+      endIf
+      
+    #---------------------------------------------------------------------
+    method acceptsChar( Char c ).Logical: 
+      return font.characters.contains( c )
+
+endClass
+
+#{==============================================================================
+
+  Text Entry field that filters for numbers
+
+==============================================================================}#
+class NumberEntryField : TextEntryField
+
+  #---------------------------------------------------------------------
+  method acceptsChar( Char c ).Logical:
+    if( prior.acceptsChar( c ) and
+        ( ( is_digit( c ) ) or
+          ( c == '.' ) or ( c == '+' ) or ( c == '-' ) ) ) return true
+    return false       
+    
+endClass
+
+#{==============================================================================
+
+  Allows you to switch focus between groups or linked lists of controls
+  Generally handy when trying to capture keyboard input (textfields, etc.)
+  
+  It can be tricky using this with a Screen's on( KeyEvent e ) without
+    thrashing around control groups in one update (and ending back where you 
+    started ), so this is how I've had some luck handling it before:
+    
+  class SomeScreen : Screen  
+  
+    method on( KeyEvent e ):
+      if( ( e.type == KeyEvent.press ) and 
+          ( e.keycode == Key.keycode_tab ) and
+          ( not focusableControl.has_focus ) and 
+          ( not focusableControl.last_has_focus ) )
+        focusableControl.has_focus = true
+      endIf
+    
+  In other words, make sure that has_focus AND last_has_focus are both false
+    to ensure that you're not cycling the focus in a single update
+
+  somewhat expensive since its an aspect
+
+==============================================================================}#
+overlaying aspect Focusable
+
+  PROPERTIES
+    has_focus = false : Logical
+    last_has_focus = false : private Logical
+  
+    prev_focusable : Focusable
+    next_focusable : Focusable
+    
+    switch_focus_keycode = Key.keycode_tab : Int32
+    prev_focus_modifiers = Key.modifier_shift : Int32
+    
+  METHODS
+    #---------------------------------------------------------------------
+    method on( KeyEvent e ):
+      last_has_focus = has_focus
+      if( not has_focus ) return
+      # println( "Focusable " + this + " has focus" )
+    
+      if( ( e.type == KeyEvent.press ) and 
+          ( e.keycode == switch_focus_keycode ) )
+        # cheap kludgy trick to keep from thrashing between focusables
+        #   in the same update - bc they generally have the same keycodes
+        has_focus = false 
+        if( ( has_focus ) and ( not last_has_focus ) ) on_focused
+        if( ( not has_focus ) and ( last_has_focus ) ) on_unfocused
+        
+        if( Input.key_modifiers & prev_focus_modifiers != 0 )
+          if( prev_focusable? ) prev_focusable.has_focus = true
+        else
+          if( next_focusable? ) next_focusable.has_focus = true
+        endIf
+        
+      else  
+        insertUnderlying
+      endIf
+      
+    method on_unfocused:
+      # println( "" + this + "on_unfocused" )
+    method on_focused:
+      # println( "" + this + "on_focused" )
+      
+endAspect
+
+#{==============================================================================
+
+  A text entry field that is focusable - prob best to use this
+
+==============================================================================}#
+class TextField : TextEntryField, Focusable;
+
+
+
+
+#{******************************************************************************
+
+  Given an image and dimesions to split that image, StichedImageFactory
+    splits the image into nine tiles and repeats the 'inner tiles' as
+    much as needed to create the given final size
+
+  For example:
+    given an image (represented as chars here) like: 123
+                                                     456
+                                                     789
+                                                     
+    saying that each char reps a part of the image 16x16 pixels in size
+    you could call StichedImageFactory.create( 
+      image, Box( 16, 16, 16, 16 ), Vector2( 804, 93 ) )
+    and the factory will create an 804x93 image repeating tiles 2,4,5,6,8 
+    (or portions thereof) as necessary to create the larger image
+    
+  You can also create smaller than the initial image, but all corners will/must
+    be drawn so you can't create something smaller than that
+    
+  This is fairly expensive (I think), so it's best called only in init
+
+==============================================================================}#
+singleton class StichedImageFactory
+  
+  #-----------------------------------------------------------------------
+  method create( String bitmapToSplitFilename, Box split, Vector2 size ).Image:
+    # println( "bitmapToSplitFilename = " + bitmapToSplitFilename )
+    local Bitmap bitmapToSplit( bitmapToSplitFilename )
+  
+    if( ( bitmapToSplit.size.x < split.size.x ) or 
+        ( bitmapToSplit.size.y < split.size.y ) or
+        ( split.x1 < 0 ) or ( split.y1 < 0 ) or
+        ( split.x2 > bitmapToSplit.size.x ) or
+        ( split.y2 > bitmapToSplit.size.y ) ) 
+      throw InvalidOperandError( "split", "" + split )
+    endIf
+    
+    local Real64 left_width = split.x1
+    local Real64 right_width = bitmapToSplit.size.x - split.x2
+    # println( "left width = $, right width = $" ( left_width, right_width ) )
+    
+    local Real64 top_height = split.y1
+    local Real64 bottom_height = bitmapToSplit.size.y - split.y2
+    # println( "top height = $, bottom height = $" ( top_height, bottom_height ) )
+    # println( "mid height = $, mid height = $" ( split.width, split.height ) )
+    
+    local Bitmap[] splitBitmaps = {
+      Bitmap( bitmapToSplit,        0,        0, left_width,  top_height ),
+      Bitmap( bitmapToSplit, split.x1,        0, split.width, top_height ),
+      Bitmap( bitmapToSplit, split.x2,        0, right_width, top_height ),
+      Bitmap( bitmapToSplit,        0, split.y1, left_width,  split.height ),
+      Bitmap( bitmapToSplit, split.x1, split.y1, split.width, split.height ),
+      Bitmap( bitmapToSplit, split.x2, split.y1, right_width, split.height ),
+      Bitmap( bitmapToSplit,        0, split.y2, left_width,  bottom_height ),
+      Bitmap( bitmapToSplit, split.x1, split.y2, split.width, bottom_height ),
+      Bitmap( bitmapToSplit, split.x2, split.y2, right_width, bottom_height )
+    }
+    return create( splitBitmaps, size )  
+    
+  #-----------------------------------------------------------------------
+  method create( String[] bitmapNames, Vector2 size ).Image:
+    if( bitmapNames.count < 9 ) throw InvalidOperandError( 
+      "bitmapNames", "" + bitmapNames )
+    
+    local Bitmap[] bitmaps()
+    forEach( name in bitmapNames ) bitmaps.add( Bitmap( name ) )
+    return create( bitmaps, size )
+ 
+  #-----------------------------------------------------------------------
+  method create( Bitmap[] bitmaps, Vector2 size ).Image:
+    if( bitmaps.count < 9 ) throw InvalidOperandError( "bitmaps", "" + bitmaps )
+    
+    # calc outer (border) bitmap dimensions
+    local Real64 left_width = bitmaps[ 0 ].size.x
+    local Real64 right_width = bitmaps[ 2 ].size.x
+    local Real64 top_height = bitmaps[ 0 ].size.y
+    local Real64 bottom_height = bitmaps[ 6 ].size.y
+    if( ( size.x < ( left_width + right_width ) ) or
+        ( size.y < ( top_height + bottom_height ) ) ) 
+      throw InvalidOperandError( "size", "" + size )
+    endIf
+    # println( "left width = $, right width = $" ( left_width, right_width ) )
+    # println( "top height = $, bottom height = $" ( top_height, bottom_height ) )
+    
+    local Bitmap dest( size )
+    dest.clear( Color( 0x00000000 ) )
+    
+    # calc middle tile dimensions and how many times it repeats
+    local Real64 middle_tile_width = bitmaps[ 4 ].size.x
+    local Real64 middle_width = size.x - ( left_width + right_width )
+    local Int32 middle_count_wide = 
+      ( middle_width / middle_tile_width ).(Int32)
+    local Int32 middle_rem_wide = middle_width % middle_tile_width
+    # println( "wide = " + middle_tile_width + 
+      # " x" + middle_count_wide + ", rem:" + middle_rem_wide )
+      
+    local Real64 middle_tile_height = bitmaps[ 4 ].size.y
+    local Real64 middle_height = size.y - ( top_height + bottom_height )
+    local Int32 middle_count_high = 
+      ( middle_height / middle_tile_height ).(Int32)
+    local Int32 middle_rem_high = middle_height % middle_tile_height
+    # println( "mid height = " + middle_tile_height + 
+      # " x" + middle_count_high + ", rem:" + middle_rem_high )
+    
+    local Vector2 drawPos( 0, 0 )
+    # top row
+    draw_row( dest, drawPos, middle_count_wide, middle_rem_wide, 
+      bitmaps[ 0 ], bitmaps[ 1 ], bitmaps[ 2 ] )
+    drawPos += Vector2( 0, top_height )
+    
+    # middle rows
+    forEach( 0..< middle_count_high )
+      draw_row( dest, drawPos, middle_count_wide, middle_rem_wide, 
+        bitmaps[ 3 ], bitmaps[ 4 ], bitmaps[ 5 ] )
+      drawPos += Vector2( 0, middle_tile_height )
+    endForEach
+    
+    # squished row
+    if( middle_rem_high > 0 )
+      draw_row( dest, drawPos, middle_count_wide, middle_rem_wide, 
+        Bitmap( bitmaps[ 3 ], 0, 0, left_width,        middle_rem_high ), 
+        Bitmap( bitmaps[ 4 ], 0, 0, middle_tile_width, middle_rem_high ),
+        Bitmap( bitmaps[ 5 ], 0, 0, right_width,       middle_rem_high ) )
+      drawPos += Vector2( 0, middle_rem_high )
+    endIf
+    
+    # bottom row
+    draw_row( dest, drawPos, middle_count_wide, middle_rem_wide, 
+      bitmaps[ 6 ], bitmaps[ 7 ], bitmaps[ 8 ] )
+
+    # copy to new image and return
+    return Image( dest )
+
+  #-----------------------------------------------------------------------
+  private method draw_row( Bitmap dest, Vector2 drawPos, Int32 middle_count, 
+      Real64 remainder_width, Bitmap left, Bitmap middle, Bitmap right ):
+
+    left.draw_to( dest, drawPos, false )
+    drawPos += Vector2( left.size.x, 0 )
+    
+    forEach( 0..< middle_count ) 
+      middle.draw_to( dest, drawPos, false )
+      drawPos += Vector2( middle.size.x, 0 )
+    endForEach
+    
+    if( remainder_width > 0 )
+      Bitmap( middle, 0, 0, remainder_width, middle.size.y ).
+        draw_to( dest, drawPos, false )
+      drawPos += Vector2( remainder_width, 0 )
+    endIf 
+    
+    right.draw_to( dest, drawPos, false )
+
+endClass
+
+
+
+#{******************************************************************************
+    
+  These are the Manager augments used in this library
+  
+******************************************************************************}#
+
+# ==============================================================================
+augment BoxManager
+
+  method left_center( Box box ).Vector2:
+    return Vector2( box.x1, box.y1 + box.height / 2 )
+  
+  method right_center( Box box ).Vector2:
+    return Vector2( box.x2, box.y1 + box.height / 2 )
+  
+  method top_center( Box box ).Vector2:
+    return Vector2( box.x1 + box.width / 2, box.y1 )
+  
+  method bottom_center( Box box ).Vector2:
+    return Vector2( box.x1 + box.width / 2, box.y2 )
+    
+  method op-( Box b1, Box b2 ).Box:
+    return Box( b1.position - b2.position, b1.size - b2.size )
+    
+endAugment
+
+# ==============================================================================
+augment HandleManager
+
+  method is_top( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 1, 2, 7: return true;
+    endWhich
+    return false;
+    
+  method is_bottom( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 3, 4, 8: return true;
+    endWhich
+    return false;
+    
+  method is_middle( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 5, 6, 9: return true;
+    endWhich
+    return false;
+    
+  method is_right( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 2, 4, 6: return true;
+    endWhich
+    return false;
+    
+  method is_left( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 1, 3, 5: return true;
+    endWhich
+    return false;
+    
+  method is_center( Handle handle ).Logical:
+    which( handle.relative_position )
+      case 7, 8, 9: return true;
+    endWhich
+    return false;
+    
+  method create_from( Int32 relative_position, Vector2 size ).Handle:
+    # println( "HandleManager.create_from: " + relative_position + 
+      # ", size: " + size )
+    which (relative_position)
+      #NOTE # Handle.absolute is treated as an invalid operand here
+      case Handle.top_left:      
+        return Handle( Vector2( 0, 0 ), Handle.top_left )
+      case Handle.top_right:     
+        return Handle( Vector2( size.x, 0 ), Handle.top_right )
+      case Handle.bottom_left:   
+        return Handle( Vector2( 0, size.y ), Handle.bottom_left )
+      case Handle.bottom_right:  
+        return Handle( Vector2( size.x, size.y ), Handle.bottom_right )
+      case Handle.left_center:   
+        return Handle( Vector2( 0, size.y/2 ), Handle.left_center )
+      case Handle.right_center:  
+        return Handle( Vector2( size.x, size.y/2 ), Handle.right_center )
+      case Handle.top_center:    
+        return Handle( Vector2( size.x/2, 0 ), Handle.top_center )
+      case Handle.bottom_center: 
+        return Handle( Vector2( size.x/2, size.y ), Handle.bottom_center )
+      case Handle.center:        
+        return Handle( Vector2( size.x/2, size.y/2 ), Handle.center )
+      others: throw InvalidOperandError()
+    endWhich
+
+endAugment
+
+# ==============================================================================
+augment Bitmap
+  method init( Bitmap existing, Real64 x, Real64 y, Real64 w, Real64 h ):
+    init( existing, Vector2( x, y ), Vector2( w, h ) )
+endAugment
+
+
+
+
+

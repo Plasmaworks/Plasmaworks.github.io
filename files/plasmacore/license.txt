@@ -1,0 +1,124 @@
+Plasmacore End User License Agreement (EULA)
+
+BY MAKING A PLASMACORE-BASED PRODUCT AVAILABLE, THE LICENSEE IS CONSENTING 
+TO BE BOUND BY AND BECOME A PARTY TO THIS LICENSE AGREEMENT.
+
+SUMMARY
+
+Plasmacore may be used to create games and applications under either the 
+Commercial License or the Non-Commercial License on a per-product basis.
+
+Commercial License: before you sell or otherwise use your game or application
+in a commercial fashion you must pay a one-time license fee of $100 per
+title.  You may then sell or distribute as many copies of that title as you
+wish on as many platforms that Plasmacore supports with no other restrictions.
+You do not need to acknowledge the use of Plasmacore in your products.
+The license fee for new title licenses may be changed at any time.
+
+Non-Commercial License: if your game or application is freely available
+then no license fees are required.  However, you must acknowledge the use
+of Plasmacore somewhere in your game or application.
+
+
+DEFINITIONS
+
+"Plasmacore"
+  The Plasmacore game programming framework including all related tools
+  and libraries.
+
+"Product"
+  A single software game or application created with Plasmacore (including 
+  all subsequent versions and upgrades).
+
+"Licensee"
+  The company or individual who is creating a Product with Plasmacore.
+
+"Licensor"
+  Plasmaworks LLC
+
+
+LIMITATIONS
+
+The license is granted on a per-Product basis.  Licensee may choose to apply
+either the Commercial License or the Non-Commercial License to each product.
+
+
+COMMERCIAL LICENSE
+
+Licensor grants Licensee a limited non-exclusive license to use Plasmacore for
+the purposes of making source code and object code for a single Product.
+
+(a) Licensee may publicly sell, distribute, release, publish, transmit and/or
+exploit the Product created hereunder.
+
+(b) Licensee may have the Product published in any channel by any publisher
+with no royalties owed to the Licensor.
+
+(c) Licensee does not need to obtain any permissions or approvals from Licensor
+to release, publish, sell, or otherwise exploit the Product.
+
+(d) Licensee is not required to display branding or make acknowledgments 
+relating to the licensing or use of Plasmacore in the Product.
+
+(e) Licensor must pay Licensee a licensing fee of $100 before the Product may
+be sold or used in a commercial fashion.  Each separate Product incurs a 
+separate fee.  The fee for new licenses may be raised at any time and without 
+warning by the Licensor.  Payment should be made via PayPal to:
+
+  payment (at) plasmaworks.com
+
+
+NON-COMMERCIAL LICENSE
+
+(a) Licensee may release, distribute, and transmit the Product created
+hereunder in a non-commercial fashion.  The Product must be freely available.
+
+(b) No royalties are owed to the Licensor.
+
+(c) Licensee does not need to obtain any permissions or approvals from Licensor
+to release, transmit, or otherwise distribute Products.  
+
+(d) Licensee must acknowledge the use of Plasmacore on some easily visible or
+accessible screen in the Product.
+
+(e) No fee is required for a Non-Commercial License.
+
+
+RESTRICTIONS
+
+The following restrictions apply to the use of Plasmacore:
+
+(a) Licensee may not: (i) create any derivative works of Plasmacore, including
+translations or localizations, other than the Products; (ii) reverse engineer,
+or otherwise attempt to derive the algorithms for Plasmacore (iii)
+redistribute, encumber, sell, rent, lease, sub-license, or otherwise transfer
+rights to Plasmacore.
+
+(b) Licensee is not granted source code access or rights to modify the 
+Plasmacore "native layer" that comes pre-compiled with the standard Plasmacore
+distribution.  Such rights may be granted through a special arrangement with
+Licensor.
+
+
+AMENDMENT AND TERMINATION
+
+Licensor may amend this agreement at any time, at its sole discretion, for a
+specific Licensee only with written agreement by both parties. 
+
+Without prejudice to any other rights, Licensor may terminate this Agreement if
+Licensee breaches any of its terms and conditions.  Upon termination, Licensee
+shall halt the distribution of Products built using Plasmacore.
+
+
+DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTY OR GUARANTEED
+UPDATES OF ANY KIND, INCLUDING WITHOUT LIMITATION THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT. THE
+ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS THE
+RESPONSIBILITY OF LICENSEE.  SHOULD THE SOFTWARE PROVE DEFECTIVE IN ANY RESPECT,
+LICENSEE AND NOT LICENSOR OR ITS SUPPLIERS OR RESELLERS ASSUMES THE ENTIRE COST
+OF ANY SERVICE AND REPAIR.  THIS DISCLAIMER OF WARRANTY CONSTITUTES AN ESSENTIAL
+PART OF THIS AGREEMENT.  NO USE OF THE SOFTWARE IS AUTHORIZED HEREUNDER EXCEPT
+UNDER THIS DISCLAIMER.
+

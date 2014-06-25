@@ -1,0 +1,12 @@
+plasmacore
+20100301
+Plasmacore v3.0 Beta 6
+http://www.plasmaworks.com/files/plasmacore/archive/plasmacore-3.0-beta6.zip
+Supports Mac, Windows, and iPhone, with Android support coming soon.  For details, see http://plasmaworks.com/wiki/index.php/Plasmacore_v3.0 
+
+platform-windows
+20100301
+Plasmacore Windows Platform v3.0 Beta6
+http://www.plasmaworks.com/files/plasmacore/archive/platforms/windows/plasmacore-3.0-beta6-windows.zip
+Windows platform utilizing DirectX and Audiere.
+

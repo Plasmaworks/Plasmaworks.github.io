@@ -1,0 +1,2394 @@
+<html>
+<head>
+  <title>Slag Language Primer</title>
+  <style type="text/css">
+    .comment { color: rgb(0,192,192); font-style:italic; }
+    .keyword { color: rgb(0,144,144); }
+    .structure { color: rgb(0,64,64); font-weight: bold; }
+    .member_category { color: rgb(0,128,128); font-weight:bold; }
+    .directive { background-color: rgb(192,255,255); }
+    .literal  { color: rgb(0,144,144); }
+    .datatype,.category { color: rgb(0,0,0); background-color:rgb(224,255,255) }
+    .pad16{padding-left:16;}
+    .pad48{padding-left:48;}
+    .pad80{padding-left:80;}
+    table.indented 
+    {
+      width: 100%;
+      border-style: none;
+      background-color: rgb(255,255,255);
+      border-color: rgb(0,0,255);
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    table.section 
+    {
+      width: 100%;
+      border-width: thin thin thin thin;
+      border-spacing: 0px;
+      border-style: solid;
+      border-color: black black black black;
+      border-collapse: separate;
+      background-color: rgb(255,255,255);
+    }
+    table.section th 
+    {
+      border-width: thin thin thin thin;
+      padding: 3px 3px 3px 3px;
+      border-style: solid;
+      border-color: black;
+      background-color: rgb(224,224,255);
+      color: black;
+      text-align: left;
+      font-size: 1.25em;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    .tdsection
+    {
+      border-width: thin thin thin thin;
+      padding: 16px;
+      border-style: solid;
+      border-color: black;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    .docheader { font-size: 2.00em; }
+    h1 { font-size: 1.30em; }
+    h2 { font-size: 1.20em; }
+    h3 { font-size: 1.10em; }
+    h4 { font-size: 1.00em; }
+    .solidhr { border-style: solid; color: rgb(224,224,224); background-color: rgb(224,224,224); height: 1px; }
+    .indented tt { font-family: lucida console; }
+    .code tt { font-family: lucida console; font-weight: normal; }
+    table.code 
+    {
+      width: 95%;
+      border-width: 2px 2px 2px 2px;
+      border-spacing: 0px;
+      border-style: none;
+      border-color: black;
+      border-collapse: separate;
+      background-color: rgb(248,255,255);
+      color: black;
+    }
+    table.code th 
+    {
+      border-width: thin;
+      padding: 0px;
+      border-style: none;
+      border-color: black;
+      background-color: white;
+      color: black;
+      text-align: left;
+      font-size: 1.00em;
+      font-weight: bold;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+    table.code td 
+    {
+      border-width: thin thin thin thin;
+      padding: 3px 3px 3px 3px;
+      border-style: solid; 
+      border-color: black;
+      background-color: rgb(248,255,255);
+      color: black;
+      -moz-border-radius: 0px 0px 0px 0px;
+    }
+  </style>
+</head>
+<body vlink=#0000ff style='width:800; font-family: arial; background-color: rgb(96,96,96);'>
+<table class='section'><th align=left><table cellspacing=0 cellpadding=0 border=0 style='border-style: none; width: 100%'><tr><td style='border-style: none;'><span class='docheader'>Slag Language Primer</span></td><td style='border-style: none; text-align: right; font-weight: bold;'>v0.23 / 2008.10.17 / Abe Pralle</td></tr></table></th><tr><td class='tdsection'>
+
+<p><h1>Contents</h1><dl><dd>
+<p><b><a href="#1.  Audience">1.  Audience</a></b><br>
+<p><b><a href="#2.  Getting Started">2.  Getting Started</a></b><br>
+<span class="pad16"><a href="#2.1.  Setup">2.1.  Setup</a></span><br>
+<span class="pad48"><a href="#2.1.1.  Windows">2.1.1.  Windows</a></span><br>
+<span class="pad16"><a href="#2.2.  Hello World Program">2.2.  Hello World Program</a></span><br>
+<span class="pad16"><a href="#2.3.  Compiling">2.3.  Compiling</a></span><br>
+<span class="pad16"><a href="#2.4.  Running">2.4.  Running</a></span><br>
+<span class="pad16"><a href="#2.5.  Source File Organization">2.5.  Source File Organization</a></span><br>
+<span class="pad48"><a href="#2.5.1.  Main Project File">2.5.1.  Main Project File</a></span><br>
+<span class="pad48"><a href="#2.5.2.  [include _filename.slag_] directive">2.5.2.  [include "filename.slag"] directive</a></span><br>
+<span class="pad48"><a href="#2.5.3.  [includeDir _directory_path_] directive">2.5.3.  [includeDir "directory_path"] directive</a></span><br>
+<span class="pad48"><a href="#2.5.4.  [mainClass ClassName] directive">2.5.4.  [mainClass ClassName] directive</a></span><br>
+<span class="pad16"><a href="#2.6.  Odds &amp; Ends">2.6.  Odds &amp; Ends</a></span><br>
+<span class="pad48"><a href="#2.6.1.  Comments">2.6.1.  Comments</a></span><br>
+<span class="pad48"><a href="#2.6.2.  Ellipsis Line Continuation">2.6.2.  Ellipsis Line Continuation</a></span><br>
+<span class="pad48"><a href="#2.6.3.  Escape Sequences">2.6.3.  Escape Sequences</a></span><br>
+<p><b><a href="#3. Conventions">3. Conventions</a></b><br>
+<span class="pad16"><a href="#3.1.  Terminology">3.1.  Terminology</a></span><br>
+<span class="pad16"><a href="#3.2.  Type Names">3.2.  Type Names</a></span><br>
+<span class="pad48"><a href="#3.2.1.  Type Name Capitalization">3.2.1.  Type Name Capitalization</a></span><br>
+<span class="pad48"><a href="#3.2.2.  Meaning">3.2.2.  Meaning</a></span><br>
+<span class="pad16"><a href="#3.3.  Variables and Methods">3.3.  Variables and Methods</a></span><br>
+<span class="pad48"><a href="#3.3.1.  Member Capitalization">3.3.1.  Member Capitalization</a></span><br>
+<span class="pad48"><a href="#3.3.2.  Meaning">3.3.2.  Meaning</a></span><br>
+<span class="pad80"><a href="#3.3.2.1.  State (nouns)">3.3.2.1.  State (nouns)</a></span><br>
+<span class="pad80"><a href="#3.3.2.2.  Queries (is_X, has_X)">3.3.2.2.  Queries (is_X, has_X)</a></span><br>
+<span class="pad80"><a href="#3.3.2.3.  Conversions (to_X)">3.3.2.3.  Conversions (to_X)</a></span><br>
+<span class="pad80"><a href="#3.3.2.4.  Reinterpretations (as_x)">3.3.2.4.  Reinterpretations (as_x)</a></span><br>
+<span class="pad80"><a href="#3.3.2.5.  Class Factory Methods (create)">3.3.2.5.  Class Factory Methods (create)</a></span><br>
+<span class="pad80"><a href="#3.3.2.6.  Nonstandard Parameters (by_X)">3.3.2.6.  Nonstandard Parameters (by_X)</a></span><br>
+<span class="pad80"><a href="#3.3.2.7.  Primitive and Compound Properties (x_of)">3.3.2.7.  Primitive and Compound Properties (x_of)</a></span><br>
+<span class="pad80"><a href="#3.3.2.8.  Containers (set, get, add)">3.3.2.8.  Containers (set, get, add)</a></span><br>
+<p><b><a href="#4. Primitives">4. Primitives</a></b><br>
+<span class="pad16"><a href="#4.1 Primitive Types">4.1 Primitive Types</a></span><br>
+<span class="pad16"><a href="#4.2. Primitive Type Conversions">4.2. Primitive Type Conversions</a></span><br>
+<p><b><a href="#5. Literal Values">5. Literal Values</a></b><br>
+<p><b><a href="#6.  Console Input and Output">6.  Console Input and Output</a></b><br>
+<span class="pad16"><a href="#6.1. Printing Output">6.1. Printing Output</a></span><br>
+<span class="pad16"><a href="#6.2. Input">6.2. Input</a></span><br>
+<p><b><a href="#7. Simple Classes">7. Simple Classes</a></b><br>
+<span class="pad16"><a href="#7.1.  Key Points">7.1.  Key Points</a></span><br>
+<span class="pad16"><a href="#7.2.  Example: Name Class">7.2.  Example: Name Class</a></span><br>
+<span class="pad16"><a href="#7.3. Example: Stoplight Class">7.3. Example: Stoplight Class</a></span><br>
+<span class="pad16"><a href="#7.4.  Example: Die">7.4.  Example: Die</a></span><br>
+<span class="pad16"><a href="#7.5.  Example: Temperature Class">7.5.  Example: Temperature Class</a></span><br>
+<p><b><a href="#8. Operators">8. Operators</a></b><br>
+<span class="pad16"><a href="#8.1.  Math Operators">8.1.  Math Operators</a></span><br>
+<span class="pad16"><a href="#8.2.  Bitwise Operators">8.2.  Bitwise Operators</a></span><br>
+<span class="pad16"><a href="#8.3.  Relational and Logical Operators">8.3.  Relational and Logical Operators</a></span><br>
+<span class="pad16"><a href="#8.4.  Range Operators">8.4.  Range Operators</a></span><br>
+<span class="pad16"><a href="#8.5.  Type-checking and Cast Operators">8.5.  Type-checking and Cast Operators</a></span><br>
+<span class="pad16"><a href="#8.6.  'duplicate' Operator">8.6.  'duplicate' Operator</a></span><br>
+<p><b><a href="#9. Control Structures">9. Control Structures</a></b><br>
+<span class="pad16"><a href="#9.1.  Single-line and Multi-line Commands">9.1.  Single-line and Multi-line Commands</a></span><br>
+<span class="pad16"><a href="#9.2.  Selection">9.2.  Selection</a></span><br>
+<span class="pad48"><a href="#9.2.1.  'if'">9.2.1.  'if'</a></span><br>
+<span class="pad48"><a href="#9.2.2.  'which'">9.2.2.  'which'</a></span><br>
+<span class="pad48"><a href="#9.2.3.  'contingent'">9.2.3.  'contingent'</a></span><br>
+<span class="pad16"><a href="#9.3.  Iteration">9.3.  Iteration</a></span><br>
+<span class="pad48"><a href="#9.3.1.  'while'">9.3.1.  'while'</a></span><br>
+<span class="pad48"><a href="#9.3.2.  'forEach'">9.3.2.  'forEach'</a></span><br>
+<span class="pad48"><a href="#9.3.3.  'loop'">9.3.3.  'loop'</a></span><br>
+<span class="pad48"><a href="#9.3.4.  'repeat'">9.3.4.  'repeat'</a></span><br>
+<span class="pad16"><a href="#9.4.  try-catch and throw">9.4.  try-catch and throw</a></span><br>
+<span class="pad16"><a href="#9.5.  Labels and Breaks">9.5.  Labels and Breaks</a></span><br>
+<span class="pad48"><a href="#9.5.1.  Labels">9.5.1.  Labels</a></span><br>
+<span class="pad48"><a href="#9.5.2.  'escapeX' ">9.5.2.  'escapeX' </a></span><br>
+<span class="pad48"><a href="#9.5.3.  'nextIteration'">9.5.3.  'nextIteration'</a></span><br>
+<p><b><a href="#10. Extended Classes">10. Extended Classes</a></b><br>
+<span class="pad16"><a href="#10.1.  Key Points">10.1.  Key Points</a></span><br>
+<span class="pad16"><a href="#10.2.  Example: Shape class">10.2.  Example: Shape class</a></span><br>
+<p><b><a href="#11. Advanced Class Topics">11. Advanced Class Topics</a></b><br>
+<span class="pad16"><a href="#11.1.  init_class method">11.1.  init_class method</a></span><br>
+<span class="pad16"><a href="#11.2.  init_object method">11.2.  init_object method</a></span><br>
+<span class="pad16"><a href="#11.3.  Operator Methods">11.3.  Operator Methods</a></span><br>
+<span class="pad48"><a href="#11.3.1.  Example: CaesarCypherMessage">11.3.1.  Example: CaesarCypherMessage</a></span><br>
+<span class="pad16"><a href="#11.4.  'promote' Method">11.4.  'promote' Method</a></span><br>
+<p><b><a href="#12. Compounds">12. Compounds</a></b><br>
+<p><b><a href="#13. 'enum' definitions">13. 'enum' definitions</a></b><br>
+<span class="pad16"><a href="#13.1. BitFlags enum augment">13.1. BitFlags enum augment</a></span><br>
+<p><b><a href="#14. Templates">14. Templates</a></b><br>
+<span class="pad16"><a href="#14.1.  Non-template / Template Comparison">14.1.  Non-template / Template Comparison</a></span><br>
+<span class="pad16"><a href="#14.2.  Key Points">14.2.  Key Points</a></span><br>
+<span class="pad16"><a href="#14.3.  Example: Pair">14.3.  Example: Pair</a></span><br>
+<span class="pad16"><a href="#14.4. Template Conditionals">14.4. Template Conditionals</a></span><br>
+<p><b><a href="#15. Aspects">15. Aspects</a></b><br>
+<p><b><a href="#16. Augments">16. Augments</a></b><br>
+<p><b><a href="#17. Primitive Methods">17. Primitive Methods</a></b><br>
+<p><b><a href="#18. Arrays and Lists">18. Arrays and Lists</a></b><br>
+<span class="pad16"><a href="#18.1.  Arrays">18.1.  Arrays</a></span><br>
+<span class="pad16"><a href="#18.2.  Lists">18.2.  Lists</a></span><br>
+<span class="pad48"><a href="#18.2.1.  Operators and Lists">18.2.1.  Operators and Lists</a></span><br>
+<span class="pad48"><a href="#18.2.2. Technical Details">18.2.2. Technical Details</a></span><br>
+<p><b><a href="#19.  Standard Library &amp; API Reference">19.  Standard Library &amp; API Reference</a></b><br>
+<span class="pad16"><a href="#19.1.  Global">19.1.  Global</a></span><br>
+<span class="pad16"><a href="#19.2.  RequiresCleanup">19.2.  RequiresCleanup</a></span><br>
+<span class="pad16"><a href="#19.3.  File I/O">19.3.  File I/O</a></span><br>
+<span class="pad16"><a href="#19.4.  HashTable">19.4.  HashTable</a></span><br>
+<span class="pad16"><a href="#19.5.  Pattern">19.5.  Pattern</a></span><br>
+<p><b><a href="#20.  SlagDoc">20.  SlagDoc</a></b><br>
+</dl></td></tr></table>
+
+<p>
+<p><!--------------------------->
+<a name="1.  Audience"></a>
+<table class='section'><th>1.  Audience</th><tr><td class='tdsection'>
+
+This Slag language primer is written for the experienced Java programmer.  Others may benefit, but Slag concepts are often defined using Java examples and terminology.
+<p>
+You will need some familiarity with using the system command prompt and a generic text editor of your choice.
+<p>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="2.  Getting Started"></a>
+<table class='section'><th>2.  Getting Started</th><tr><td class='tdsection'>
+
+<p>
+<a name="2.1.  Setup"></a>
+
+<h2>2.1.  Setup</h2>
+<p>
+<a name="2.1.1.  Windows"></a>
+
+<h3>2.1.1.  Windows</h3>
+<p>
+Unzip the Slag installation to disk - for example, place the
+"Slag" root directory in "c:\Program Files\" or another
+location of your choice.
+<p>
+Add "c:\Program Files\Slag\" (or similar) to your system path.
+<p>
+<p>
+<a name="2.2.  Hello World Program"></a>
+<br>
+
+<h2>2.2.  Hello World Program</h2>
+<p>
+Type in this program and save it as "hello.slag":
+<p>
+<dl><dd><table class='code'><th> hello.slag</th><tr class='code'><td class='code'><tt>
+<span class='comment'>#===========================================================</span><br>
+<span class='comment'># hello.slag</span><br>
+<span class='comment'>#</span><br>
+<span class='comment'># History: 2007.08.31 / Abe Pralle - Created</span><br>
+<span class='comment'>#===========================================================</span><br>
+<span class='structure'>class</span> <span class='datatype'>Hello</span><br>
+&nbsp;&nbsp;<span class='comment'># Prints 'Hello World' to the screen.</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Hello World"</span> )<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="2.3.  Compiling"></a>
+<br>
+
+<h2>2.3.  Compiling</h2>
+<p>
+To compile "hello.slag" into "hello.exe" (VM/bytecode bundle), type the following at the command prompt:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+slagc hello.slag</tt></tt></td></tr></table></dd></dl>
+<p>
+(or just "slagc hello")
+<p>
+To compile "hello.slag" to a ETC (Execution-Tree Code) file, type this:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+slagc -noexe hello.slag</tt></tt></td></tr></table></dd></dl>
+<p>
+Note that these instructions refer to command-line Slag programs
+only; for Plasmacore programs you should use ANT - refer to the
+Plasmacore Quick Start Guide.
+<p>
+<a name="2.4.  Running"></a>
+<br>
+
+<h2>2.4.  Running</h2>
+You can run your program by typing:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+hello</tt></tt></td></tr></table></dd></dl>
+<p>
+or
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+slag hello</tt></tt></td></tr></table></dd></dl>
+<p>
+depending on how you compiled it.
+<p>
+<p>
+<a name="2.5.  Source File Organization"></a>
+<br>
+
+<h2>2.5.  Source File Organization</h2>
+<p>
+<a name="2.5.1.  Main Project File"></a>
+
+<h3>2.5.1.  Main Project File</h3>
+The single source file name you give you give to the compiler should directly or indirectly [include] all the other source files used in the project.
+<p>
+The [mainClass] directive specifies the starting class of the project.  An object of that type is created and its <i>init</i> method is called.
+<p>
+<a name="2.5.2.  [include _filename.slag_] directive"></a>
+<br>
+
+<h3>2.5.2.  [include "filename.slag"] directive</h3>
+<ul>
+  <li> Queues the named file for compilation.<br>
+  <li> Order is unimportant.  <br>
+  <li> Two files can mutually reference one another without causing an error - each file will only be included once.<br>
+  <li> The standard library file "standard.slag" is automatically included.<br>
+</ul>
+<p>
+<a name="2.5.3.  [includeDir _directory_path_] directive"></a>
+<br>
+
+<h3>2.5.3.  [includeDir "directory_path"] directive</h3>
+<ul>
+  <li> Recursively includes all the ".slag" files in the given directory.<br>
+</ul>
+<p>
+Example:
+<dl><dd><table class='code'><th> project.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[include "monsters.slag"]</span><br>
+<span class='directive'>[include "heroes.slag"]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Simulation</span><br>
+&nbsp;&nbsp;...</tt></tt></td></tr></table></dd></dl>
+<p>
+<dl><dd><table class='code'><th> monsters.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[include "heroes.slag"]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Monster</span><br>
+&nbsp;&nbsp;...</tt></tt></td></tr></table></dd></dl>
+<p>
+<dl><dd><table class='code'><th> heroes.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[include "monsters.slag"]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Hero</span><br>
+&nbsp;&nbsp;...</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="2.5.4.  [mainClass ClassName] directive"></a>
+<br>
+
+<h3>2.5.4.  [mainClass ClassName] directive</h3>
+<ul>
+  <li> Specifies a program's main class.  <br>
+  <li> When the program is started, an object of the main class is created and its <i>init()</i> method is called. <br>
+  <li> Once that method returns the program is over.<br>
+  <li> If the mainClass directive is omitted, the first class the compiler encounters in the original file is assumed to be the main class.<br>
+</ul>
+<p>
+Example:
+<dl><dd><table class='code'><th> name.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass StartHere]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>DoNotStartHere</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init: ...<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>StartHere</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init: ...<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="2.6.  Odds &amp; Ends"></a>
+<br>
+
+<h2>2.6.  Odds &amp; Ends</h2>
+<a name="2.6.1.  Comments"></a>
+
+<h3>2.6.1.  Comments</h3>
+Examples:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># Single-line comment</span><br>
+<br>
+<span class='comment'>#{ Multi-line </span><br>
+comment }<span class='comment'>#</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="2.6.2.  Ellipsis Line Continuation"></a>
+<br>
+
+<h3>2.6.2.  Ellipsis Line Continuation</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+...</tt></tt></td></tr></table></dd></dl>
+<p>
+An ellipsis (...) at the end of a line means the next line should be considered a continuation of the previous line.  This is only necessary when the syntax at the end of the previous line is incomplete.
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>String</span> st<br>
+<br>
+<span class='comment'># Ellipsis required here because end of first line can be </span><br>
+<span class='comment'># considered complete.</span><br>
+st = <span class='literal'>"hello "</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class='literal'>"world"</span><br>
+<br>
+<span class='comment'># Line continuation not required here because end of first line</span><br>
+<span class='comment'># is obviously incomplete.</span><br>
+st = <span class='literal'>"hello "</span> + <br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='literal'>"world"</span><br>
+<br>
+<span class='comment'># Line continuation required here because the string at the end</span><br>
+<span class='comment'># of the first line could be considered complete - if the </span><br>
+<span class='comment'># ellipsis were omitted, the compiler would be looking for a </span><br>
+<span class='comment'># closing ')' instead of string formatting arguments.</span><br>
+println( <span class='literal'>"2^8=$"</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(2^8) )<br>
+&nbsp;&nbsp;</tt></tt></td></tr></table></dd></dl>
+<a name="2.6.3.  Escape Sequences"></a>
+<br>
+
+<h3>2.6.3.  Escape Sequences</h3>
+Slag supports the following control character escape sequences in character and string literals:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+\n - newline (Unicode 10)<br>
+\r - return (Unicode 13)<br>
+\t - tab (Unicode 9)<br>
+\' - one single-quote<br>
+\" - one double-quote<br>
+\\ - one backslash</tt></tt></td></tr></table></dd></dl>
+<p>
+Slag supports arbitrary Unicode characters anywhere in the source code:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+\uXXXX - where XXXX is a Unicode hex value 0000..ffff</tt></tt></td></tr></table></dd></dl>
+<p>
+Unlike the control sequences above, Unicode sequences are processed <i>before</i> parsing.  In general they are used in addition to but not instead of the control sequences.  For example:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+println( <span class='literal'>"hello\nworld"</span> )<br>
+<br>
+<span class='comment'># displays:</span><br>
+<span class='comment'>#&nbsp;&nbsp; hello</span><br>
+<span class='comment'>#&nbsp;&nbsp; world</span></tt></tt></td></tr></table></dd></dl>
+<p>
+but:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+println( <span class='literal'>"hello\u000aworld"</span> )<br>
+<br>
+<span class='comment'># Invalid - the above is as if you typed:</span><br>
+println( "hello<br>
+world" )</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="3. Conventions"></a>
+<table class='section'><th>3. Conventions</th><tr><td class='tdsection'>
+
+<p>
+<a name="3.1.  Terminology"></a>
+
+<h2>3.1.  Terminology</h2>
+<ul>
+  <li> <b>Primitive</b><br>
+One of the fundamental types of data that more complex types are composed of - the "Lego blocks" that are used to build the castles and spaceships of our programs.
+<p>
+  <li> <b>Class</b><br>
+The type of a thing; the blueprint of an object.  
+<p>
+  <li> <b>Object</b><br>
+An instance of a class; the thing itself.  if "Wizard" is a class, then "Gandalf" and "Harry Potter" are two different objects of that class.
+<p>
+  <li> <b>Reference</b><br>
+A variable that points to (<i>references</i>) an object.  Objects are designed so that they can be referenced by many different variables simultaneously.  A <i>reference</i> is to an <i>object</i> like a <i>URL</i> is to a <i>web site</i>.
+<p>
+  <li> <b>Object Property</b> (in Java: <i>field</i> or <i>instance variable</i>)<br>
+Object properties (or just: "properties") are the primitives and object references that are used to model each object.  If we give the <b>Name</b> class two properties called <i>first</i> and <i>last</i>, then <i>every</i> name object we create will have its own <i>first</i> and <i>last</i> variable.
+<p>
+  <li> <b>Object Method</b> (in Java: <i>instance method</i>)<br>
+Object methods are the behaviors ("functions") that each object of a class is capable of.  Different objects may respond differently to the same <i>method call</i>.  Two different things will happen if the <i>say_name</i> method is called on two different People objects.
+<p>
+  <li> <b>Class Property</b> (in Java: <i>static field</i> or <i>static variable</i>)<br>
+Class properties are variables that are shared among all objects of a class - in other words, they pertain to the class itself rather than any specific object of the class.  For example, a "Day" class might have a list of day names as a class property since each Day object wouldn't need its own separate copy of day names.
+<p>
+  <li> <b>Class Method</b> (in Java: <i>static method</i>)<br>
+Class methods are behaviors that are related to a class but are independent of any particular object.  For example, <i>factory methods</i> that create an appropriate type of object are class methods.
+<p>
+  <li> <b>Property-Set and Property-Get Methods</b><br>
+A property-set or property-get method is a method that has the same name as a property and is used to regulate and validate access to that variable.  See "Transparent Access Methods" under "Key Points" of "Simple Classes", below.
+<p>
+<a name="3.2.  Type Names"></a>
+<br>
+
+<h2>3.2.  Type Names</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+ArrayList<br>
+Boolean<br>
+String<br>
+Char<br>
+RANK<br>
+SUIT</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="3.2.1.  Type Name Capitalization"></a>
+
+<h3>3.2.1.  Type Name Capitalization</h3>
+Both primitives and regular classes use the "CamelCase" convention - "ArrayList", "Boolean", etc.
+<p>
+Enumerated types use "WIDE_NAMES_ALL_CAPS" naming convention for the type itself and
+the "wide_names" convention for the categories (i.e. enumerated values).
+Where in Java you might have "SortOrder.ASCENDING", in Slag you have "SORT_ORDER.ascending".
+The rationale is that it's more important to quickly comprehend that a type itself
+is an emumeration (as in <i>method sort(SORT_ORDER c)</i>) than to recognize that any given value
+comes from an enumeration.
+<p>
+<p>
+<a name="3.2.2.  Meaning"></a>
+<br>
+
+<h3>3.2.2.  Meaning</h3>
+Classes, compounds, and enums are named for <i>types</i> of things - SORT_ORDER, List, etc.
+<p>
+Aspects are either named for types (Reader, Writer) when incorporating them into classes will provide that functionality or as adjectives (Readable, Writable) when incorporating classes can be used for or turned to that purpose.  
+<p>
+For example, an ArrayList is not a Reader because it does not provide <i>has_another</i> and <i>read</i> methods, but it is Readable because it can provide a separate Reader object that <i>can</i> read from it.
+<p>
+<a name="3.3.  Variables and Methods"></a>
+<br>
+
+<h2>3.3.  Variables and Methods</h2>
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+start_x<br>
+start_y<br>
+compare_to<br>
+to_String<br>
+by_ordinal<br>
+is_digit<br>
+has_another<br>
+add<br>
+get<br>
+set</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="3.3.1.  Member Capitalization"></a>
+
+<h3>3.3.1.  Member Capitalization</h3>
+Methods, member variables, and enumeration values all use the "wide_names" convention with type names always capitalized.  In Slag the role of an object "member" can be filled by a variable or a method with no perceptible difference between the two.  For example, when we see "list.count", count can be an object variable access, an object method call, or a method call with a backing variable of the same name.
+<p>
+<a name="3.3.2.  Meaning"></a>
+<br>
+
+<h3>3.3.2.  Meaning</h3>
+<p>
+<a name="3.3.2.1.  State (nouns)"></a>
+
+<h4>3.3.2.1.  State (nouns)</h4>
+Properties (variables or methods) should be nouns (<i>things</i>) when they specify the state of an object.  "visible" would specify whether or not an object is visible.
+<p>
+<a name="3.3.2.2.  Queries (is_X, has_X)"></a>
+
+<h4>3.3.2.2.  Queries (is_X, has_X)</h4>
+Properties <i>is_X</i>, <i>has_X</i>, and the like are used to <i>reflect</i> the state of an object without <i>modeling</i> it.  Setting either <i>opacity</i> to zero or <i>visible</i> to <i>false</i> might set the <i>is_visible</i> member to <i>false</i> - yet setting the <i>is_visible</i> member to <i>true</i> - were it allowed - wouldn't affect either the opacity or the visibility.
+<p>
+<p>
+<a name="3.3.2.3.  Conversions (to_X)"></a>
+
+<h4>3.3.2.3.  Conversions (to_X)</h4>
+Methods <i>to_X</i> (<i>to_String</i>, <i>to_list</i>) are used to convert an existing object into another type of object.  They must be defined on a case-by-case basis.
+<p>
+<a name="3.3.2.4.  Reinterpretations (as_x)"></a>
+
+<h4>3.3.2.4.  Reinterpretations (as_x)</h4>
+Methods <i>as_X</i> (<i>as_Int32</i>, <i>as_Real64</i>) are used to reassign the type of data without <i>converting</i> the data.  For example, <i>to_String( as_Int64(3.14), 2 )</i> shows the 64 bits that define the double-precision floating point value "3.14".
+<p>
+<a name="3.3.2.5.  Class Factory Methods (create)"></a>
+
+<h4>3.3.2.5.  Class Factory Methods (create)</h4>
+<i>create</i> methods are class methods used to assist the programmer in creating an object when it's not immediately clear what subclass is necessary or what parameters need to be passed in.  As a hypothetical example, say you wanted to create a VideoCard object - but you weren't sure if you should instantiate a ATIVideoCard or an NVidiaVideoCard subclass.  The original class designer might include a method <i>VideoCard.create()</i> that creates and returns the correct object for the current computer.
+<p>
+<p>
+<a name="3.3.2.6.  Nonstandard Parameters (by_X)"></a>
+
+<h4>3.3.2.6.  Nonstandard Parameters (by_X)</h4>
+<i>by_X</i> methods are used to detail operations using a non-standard parameters.  For example, <i>RANK.by_name(0)</i> would return the enumerated value that has ordinal position "0" within the enumeration.
+<p>
+<p>
+<a name="3.3.2.7.  Primitive and Compound Properties (x_of)"></a>
+
+<h4>3.3.2.7.  Primitive and Compound Properties (x_of)</h4>
+Class methods that retrieve properties from primitives or compounds generally have an "of" suffix.  For example, in Slag Plasmacore, <i>magnitude_of(Vector2)</i> is used to return the magnitude of a given vector.
+<p>
+<a name="3.3.2.8.  Containers (set, get, add)"></a>
+
+<h4>3.3.2.8.  Containers (set, get, add)</h4>
+Methods named <i>set</i>, <i>get</i>, and <i>add</i>, (among others) are typically used with <i>containers</i> - objects whose clear purpose is to contain a set of other objects.
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="4. Primitives"></a>
+<table class='section'><th>4. Primitives</th><tr><td class='tdsection'>
+
+<p>
+<a name="4.1 Primitive Types"></a>
+
+<h2>4.1 Primitive Types</h2>
+The following primitive data types are built-in.
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+Int64, Int32, Int16, Int8<br>
+Char, Byte<br>
+Real64, Real32<br>
+Boolean, Ternary</tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> IntXX are signed integers.<br>
+  <li> Char and Byte are unsigned integers; Char prints as a symbol.<br>
+  <li> In general use Int32, Char, Real64, Boolean, and Ternary.<br>
+  <li> Boolean: <i>true</i>, <i>false</i>.<br>
+  <li> Ternary: <i>yes</i>, <i>no</i>, <i>void</i> or <i>gt</i>, <i>eq</i>, <i>lt</i> (<i>yes</i> == <i>gt</i>, etc.)<br>
+  <li> Boolean and Ternary are <i>logical</i> types.  The others are <i>numerical</i> types.<br>
+  <li> A Ternary value may be used almost anywhere where a "Boolean" is expected.  In this case Ternary "yes" counts as "true" while "no" and "void" both count as "false".<br>
+</ul>
+<p>
+<a name="4.2. Primitive Type Conversions"></a>
+<br>
+
+<h2>4.2. Primitive Type Conversions</h2>
+<ul>
+  <li> Any numerical type may be assigned to a variable of any other numerical type without explicitly casting or converting the type.  <br>
+<p>
+  <li> The Boolean and Ternary logical types are never implicitly converted.  They may be cast to or from any numerical type with an explict cast:<br>
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+boolean_value = Int32_value.(Boolean)</tt></tt></td></tr></table></dd></dl>
+<p>
+or
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+boolean_value = Boolean( Int32_value )</tt></tt></td></tr></table></dd></dl>
+<p>
+When casting Boolean -&gt; numerical:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+true&nbsp;&nbsp;-&gt; 1<br>
+false -&gt; 0</tt></tt></td></tr></table></dd></dl>
+<p>
+When casting numerical -&gt; Boolean:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+non-zero -&gt; true<br>
+zero&nbsp;&nbsp;&nbsp;&nbsp; -&gt; false</tt></tt></td></tr></table></dd></dl>
+<p>
+When casting Ternary -&gt; numerical:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+yes/gt&nbsp;&nbsp;-&gt;&nbsp;&nbsp;1<br>
+no/eq&nbsp;&nbsp; -&gt;&nbsp;&nbsp;0<br>
+void/ne -&gt; -1</tt></tt></td></tr></table></dd></dl>
+<p>
+When casting numerical -&gt; Ternary:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+positive -&gt; yes/gt<br>
+zero&nbsp;&nbsp;&nbsp;&nbsp; -&gt; no/eq<br>
+negative -&gt; void/lt</tt></tt></td></tr></table></dd></dl>
+</ul>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="5. Literal Values"></a>
+<table class='section'><th>5. Literal Values</th><tr><td class='tdsection'>
+
+Literals of various types may be expressed in the following ways.
+<p>
+<ul>
+  <li> Int64 - Int64(34), Int64(0), Int64(-5)<br>
+  <li> Int32 - 34, 0, -5<br>
+  <li> Int16 - Int16(34), Int16(0), Int16(-5)<br>
+  <li> Int8 - Int8(34), Int8(0), Int8(-5)<br>
+  <li> Char - 'A', '!', Char(97)<br>
+  <li> Byte - Byte(0), Byte(255)<br>
+  <li> Real64 - 3.14, 0.0, -5.2<br>
+  <li> Real32 - Real32(3.14), Real32(0.0), Real32(-5.2)<br>
+  <li> Boolean - true, false<br>
+  <li> Ternary - yes, no, void (or gt, eq, lt)<br>
+  <li> String - "Quotes are \"like this\"\n" or //Quotes are "like this"\n//<br>
+  <li> Range  - 1..10, 9..1 step -2, 0..&lt;count, count..&gt;0<br>
+  <li> List Literal (explicit type): Real64{ 2.3, 6.7 }<br>
+  <li> List Literal (implicit type): { 2.3, 6.7 }, {1..5}.to_list<br>
+</ul>
+<p>
+See the section on Arrays &amp; Lists for more details on list literals, readers, and <i>readable</i> things.
+<p>
+<p>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="6.  Console Input and Output"></a>
+<table class='section'><th>6.  Console Input and Output</th><tr><td class='tdsection'>
+
+<a name="6.1. Printing Output"></a>
+
+<h2>6.1. Printing Output</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+print( value )<br>
+println( value )<br>
+println( <span class='literal'>"$ + $ = $"</span> (a,b,a+b) )</tt></tt></td></tr></table></dd></dl>
+<p>
+<ul>
+  <li> The style of "string literal" (args) is called a <i>formatted string</i> and may be used outside of <i>println()</i>.<br>
+  <li> The parenthesized arguments are inserted in place of the dollar-sign <i>format markers</i> in the string.<br>
+  <li> The following format markers are allowed:<br>
+<p>
+  <ul>
+    <li> $, $() - insert with default formatting<br>
+    <li> $(5) - right-justify in at least 5 spaces<br>
+    <li> $(05) - at least 5 digits, pad with 0's in front instead of spaces.<br>
+    <li> $(4.2) - real number with at least 4 digits before '.' and 2 digits after.<br>
+    <li> $(04.2) - as above but padded with 0's in front.<br>
+    <li> $$ - insert a single $ - not technically a format marker.<br>
+  </ul>
+</ul>
+<p>
+<a name="6.2. Input"></a>
+<br>
+
+<h2>6.2. Input</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='datatype'>Int32</span> n = input<span class='category'>_I</span>nt32( <span class='literal'>"Enter a whole number: "</span> )<br>
+println( <span class='literal'>"You typed in the number $."</span> (n) )<br>
+<br>
+<span class='datatype'>String</span> text = input<span class='category'>_S</span>tring( <span class='literal'>"Enter some text: "</span> )<br>
+println( <span class='literal'>"You typed in \"</span>$\<span class='literal'>""</span> (text) )<br>
+println( <span class='literal'>"You typed in $()$()$."</span> ('<span class='literal'>"', "</span>abc<span class='literal'>", '"</span>') )<br>
+println( <span class='literal'>"I need about $$3.50."</span> )</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="7. Simple Classes"></a>
+<table class='section'><th>7. Simple Classes</th><tr><td class='tdsection'>
+
+<a name="7.1.  Key Points"></a>
+
+<h2>7.1.  Key Points</h2>
+<ul>
+  <li> <b>Member categories are used to group class members appropriately.</b><br>
+Object variables and methods are defined under PROPERTIES and METHODS headings.  Class variables and methods are defined under CLASS_PROPERTIES and CLASS_METHODS.
+<p>
+  <li> <b> Constructors are named 'init' and are usually inherited. </b><br>
+All constructors are named 'init'.  They are called automatically when an object is created; they can also be called by one another or at any time from outside code.
+<p>
+<p>
+  <li> When there are multiple method signatures that match a call - such as an instantiation <i>Circle()</i> where Circle has constructors <i>init()</i> and *init(radius=1.0)*, preference is given to non-inherited methods defined in the extended class.<br>
+<p>
+  <li> <b>Class members are generally 'public'.</b><br>
+The primary reasons to forbid direct access to variables (as in C++ and Java) are to promote implementation independence and control access to the class members via get/set access methods.  Slag sidesteps this problem entirely (see next item) and so members are encouraged to be 'public' by default.  The compiler accepts other qualifiers: private, readOnly, writeOnly.  Methods can be public or private; private is like protected in Java.  Variables can be public, private, readOnly, or writeOnly.  A readOnly variable is one that has public read access but private write access; writeOnly is vice versa.
+<p>
+Example:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+a : <span class='datatype'>Int32</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class='comment'># public by default</span><br>
+b : readOnly <span class='datatype'>Int32</span>&nbsp;&nbsp;<span class='comment'># public read, private write</span><br>
+c : writeOnly <span class='datatype'>Int32</span> <span class='comment'># public write, private read</span><br>
+d : private <span class='datatype'>Int32</span>&nbsp;&nbsp; <span class='comment'># private read/write</span></tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> <b> Transparent access methods eliminate get/set methods.</b><br>
+For a given member variable, say:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;x : <span class='datatype'>Int32</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Transparent property-get/property-set (accessor/mutator) methods may be defined:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;<span class='keyword'>method</span> x.<span class='datatype'>Int32</span>: <span class='keyword'>return</span> &amp;x<br>
+&nbsp;&nbsp;<span class='keyword'>method</span> x( <span class='datatype'>Int32</span> new_x ): &amp;x = new_x</tt></tt></td></tr></table></dd></dl>
+<p>
+These methods, if defined, intercept accesses to <i>x</i> and allow it to be validated or converted.  A pair of such <i>access methods</i> may also be used to simulate the presence of a non-existent member variable, yielding implementation independence.
+<p>
+  <li> <b>Parameters can auto-initialize member vars.</b><br>
+Leaving the type off of a method parameter indicates that the parameter should be automatically stored into the member variable of the same name.  Parameter and local variable names cannot otherwise "shadow" member variables.
+<p>
+  <li> <b>Default parameters can be specified.</b><br>
+A method parameter can be of the form "Int32 n = 3", meaning that if the argument is omitted by the caller, the value "3" will be inserted automatically.  Note that the default value has to make sense from the caller's context, not the context of the class in which the method is defined.
+<p>
+  <li> <b>Local variables declarations are preceded with 'local'.</b><br>
+<p>
+  <li> <b>Local variables may be declared as type 'var'.</b><br>
+Their true type is then inferred from their initial assignment.  For example, the following two lines are equivalent:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>Range</span><span class='datatype'>&lt;&lt;<span class='datatype'>Int32</span>&gt;&gt;</span> range = 1..10<br>
+local var range = 1..10</tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> <b>Object creation requires () but not "new".</b><br>
+To create an object of a type, write *ClassName([params])*.  No "new" keyword is required, but you must 
+at least have empty parentheses.  
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>Circle</span> c1&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># c1 references </span><span class='literal'>"null"</span><br>
+local <span class='datatype'>Circle</span> c2()&nbsp;&nbsp;<span class='comment'># same as: local Circle c2 = Circle()</span></tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> <b>Slag's enums operate similarly to Java's.</b><br>
+<p>
+</ul>
+<p>
+<a name="7.2.  Example: Name Class"></a>
+<br>
+
+<h2>7.2.  Example: Name Class</h2>
+Java:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+public class NameTest<br>
+{<br>
+&nbsp;&nbsp;static public void main( String[] args )<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Name my_name = new Name( "Abe", "Pralle" );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;System.out.println( "My name is " + my_name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ "\n(that's \"" + my_name.toRosterString() <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ "\" on the roster)" );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// prints:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp; My name is Abe Pralle <br>
+&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp; (that's "Pralle, Abe" on the roster)<br>
+&nbsp;&nbsp;}<br>
+}<br>
+<br>
+public class Name<br>
+{<br>
+&nbsp;&nbsp;private String first, last;<br>
+<br>
+&nbsp;&nbsp;public Name( String first_name, String last_name )<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;first = first_name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;last = last_name;<br>
+&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;public String toString() { return first + " " + last; }<br>
+<br>
+&nbsp;&nbsp;public String toRosterString()<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return last + ", " + first;<br>
+&nbsp;&nbsp;}<br>
+}</tt></tt></td></tr></table></dd></dl>
+<p>
+Slag:
+<dl><dd><table class='code'><th> name.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass NameTest]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>NameTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Name</span> my_name( <span class='literal'>"Abe"</span>, <span class='literal'>"Pralle"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( //<span class='datatype'>My</span> name is $\n(that's <span class='literal'>"$"</span> on the roster)// ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(my_name, my_name.to_roster<span class='category'>_S</span>tring) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># prints:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; My name is Abe Pralle </span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; (that's </span><span class='literal'>"Pralle, Abe"</span> on the roster)<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Name</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;first, last : <span class='datatype'>String</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( first, last );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> <span class='literal'>"$ $"</span> (first,last)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to_roster<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> <span class='literal'>"$, $"</span> (last,first)<br>
+<span class='structure'>endClass</span> </tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="7.3. Example: Stoplight Class"></a>
+<br>
+
+<h2>7.3. Example: Stoplight Class</h2>
+Java:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+public class Test<br>
+{<br>
+&nbsp;&nbsp;static public void main( String[] args )<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Stoplight light = new Stoplight();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for (int i=0; i&lt;4; i++)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println( light );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;light.cycle();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;# prints:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp; a RED light<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp; a GREEN light<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp; a YELLOW light<br>
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp; a RED light<br>
+<br>
+&nbsp;&nbsp;}<br>
+}<br>
+<br>
+public class Stoplight<br>
+{<br>
+&nbsp;&nbsp;enum StoplightColor<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;GREEN, YELLOW, RED;<br>
+&nbsp;&nbsp;};<br>
+<br>
+&nbsp;&nbsp;private StoplightColor state;<br>
+<br>
+&nbsp;&nbsp;public Stoplight() { state = StoplightColor.RED; }<br>
+&nbsp;&nbsp;public Stoplight( StoplightColor state ) <br>
+&nbsp;&nbsp;{ <br>
+&nbsp;&nbsp;&nbsp;&nbsp;this.state = state; <br>
+&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;public void cycle()<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;switch (state)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case GREEN: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state = StoplightColor.YELLOW; break;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case YELLOW: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state = StoplightColor.RED; break;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case RED: <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state = StoplightColor.GREEN; break;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;public String toString()<br>
+&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return "a " + state + " light";<br>
+&nbsp;&nbsp;}<br>
+}</tt></tt></td></tr></table></dd></dl>
+<p>
+Slag:
+<dl><dd><table class='code'><th> stoplight.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass StoplightTest]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>StoplightTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Stoplight</span> light()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>forEach</span> (1..4)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( light )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;light.cycle<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endForEach</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># prints:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; a red light</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; a green light</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; a yellow light</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; a red light</span><br>
+<br>
+<span class='structure'>endClass</span><br>
+<br>
+enum <span class='category'>STOPLIGHT_COLOR</span><br>
+&nbsp;&nbsp;<span class='member_category'>CATEGORIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;green, yellow, red<br>
+endEnum<br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Stoplight</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;state : <span class='category'>STOPLIGHT_COLOR</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( state = <span class='category'>STOPLIGHT_COLOR</span>.red );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> cycle:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state = state.next_in_cycle<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"a $ light"</span> (state)<br>
+<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="7.4.  Example: Die"></a>
+<br>
+
+<h2>7.4.  Example: Die</h2>
+<dl><dd><table class='code'><th> die.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass DieTest]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>DieTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Die</span> d6(6), d8(8)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"D6: $"</span> (d6.roll) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"D6: $"</span> (d6.roll) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"D6: $"</span> (d6) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"D8: $"</span> (d8.roll) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"D8: $"</span> (d8.roll) )<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Die</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;sides, value : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( sides ): roll<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> roll.<span class='datatype'>Int32</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value = random<span class='category'>_I</span>nt32( 1, sides )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> value<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> <span class='literal'>"$"</span> (value)<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="7.5.  Example: Temperature Class"></a>
+<br>
+
+<h2>7.5.  Example: Temperature Class</h2>
+<p>
+<dl><dd><table class='code'><th> temperature.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass TemperatureTest]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>TemperatureTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Temperature</span> abs_zero( 0.0, <span class='category'>TEMP_SCALE</span>.kelvin )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Abs zero is $(4.2)K / $(4.2)C / $(4.2)F"</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(abs_zero.k, abs_zero.c, abs_zero.f) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Temperature</span> boiling( 212.0, <span class='category'>TEMP_SCALE</span>.fahrenheit )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Boiling is&nbsp;&nbsp;$(4.2)K / $(4.2)C / $(4.2)F"</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(boiling.k, boiling.c, boiling.f) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Temperature</span> freezing( 0.0, <span class='category'>TEMP_SCALE</span>.celsius )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Freezing is $(4.2)K / $(4.2)C / $(4.2)F"</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(freezing.k, freezing.c, freezing.f) )<br>
+<br>
+<span class='structure'>endClass</span><br>
+<br>
+enum <span class='category'>TEMP_SCALE</span><br>
+&nbsp;&nbsp;<span class='member_category'>CATEGORIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;fahrenheit, celsius, kelvin<br>
+endEnum<br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Temperature</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;f : <span class='datatype'>Real64</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( <span class='datatype'>Real64</span> t=0.0, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='category'>TEMP_SCALE</span> scale=<span class='category'>TEMP_SCALE</span>.fahrenheit ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>which</span> (scale)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>TEMP_SCALE</span>.fahrenheit: f = t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>TEMP_SCALE</span>.celsius:&nbsp;&nbsp;&nbsp;&nbsp;c = t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>TEMP_SCALE</span>.kelvin:&nbsp;&nbsp;&nbsp;&nbsp; k = t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'><span class='literal'>others</span></span>: throw <span class='datatype'>InvalidOperandError</span>( <span class='literal'>"scale"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endWhich</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> c( <span class='datatype'>Real64</span> cels ): f = (9.0/5.0) * cels + 32.0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> c.<span class='datatype'>Real64</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class='keyword'>return</span> (5.0/9.0) * (f - 32.0)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> k( <span class='datatype'>Real64</span> kelvin ): c = kelvin - 273.15<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> k.<span class='datatype'>Real64</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class='keyword'>return</span> c + 273.15<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="8. Operators"></a>
+<table class='section'><th>8. Operators</th><tr><td class='tdsection'>
+
+<a name="8.1.  Math Operators"></a>
+
+<h2>8.1.  Math Operators</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
++ - / *<br>
+%&nbsp;&nbsp; (modulo)<br>
+^&nbsp;&nbsp; (exponentiation)<br>
+i++ (increment)<br>
+i-- (decrement)</tt></tt></td></tr></table></dd></dl>
+<p>
+Modulo operates differently than in Java and C++ when used with negative values.  Any "N % M" where M&gt;0 yields 0..(M-1).  For example, -2 % 10 == 8.  In addition, modulo behaves usefully with real numbers - (3.1 % 1.4 == 0.3).
+<p>
+Increment and decrement must be used as stand-alone commands - they can't be part of a larger expression as with Java and C++.  They simply add one or subtract one from the given variable.
+<p>
+When used with lists of primitive values, arithmetic operators automatically operate on each element of the list.
+<p>
+<a name="8.2.  Bitwise Operators"></a>
+<br>
+
+<h2>8.2.  Bitwise Operators</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+&amp; (bitwise and)<br>
+| (bitwise or)<br>
+~ (bitwise xor)<br>
+! (bitwise complement)<br>
+<br>
+a.left_shifted(b)<br>
+a.right_shifted(b)<br>
+a.right_xshifted(b)<br>
+a.left_rotated(b)<br>
+a.right_rotated(b)</tt></tt></td></tr></table></dd></dl>
+<p>
+The bit rotate and shift commands are actual operators (and consequently fast) even though they use method call syntax.
+<p>
+<a name="8.3.  Relational and Logical Operators"></a>
+<br>
+
+<h2>8.3.  Relational and Logical Operators</h2>
+<ul>
+  <li> Relational Operators<br>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+== != &lt;= &lt; &gt; &gt;=<br>
+obj1 is obj2<br>
+obj1 isNot obj2</tt></tt></td></tr></table></dd></dl>
+<p>
+The <i>is</i> operator compares two references to see if they're referencing the same object.
+<p>
+Using "==" between two references calls "obj1.equals(obj2)".
+<p>
+<p>
+  <li> Logical Operators<br>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+and<br>
+or<br>
+xor<br>
+not<br>
+?</tt></tt></td></tr></table></dd></dl>
+<p>
+Except for '?', logical operators only work on <i>Boolean</i> values.
+<p>
+The '?' (<i>booleanizing</i>) postfix unary operator works on numerical, reference, and Boolean types, returning <i>true</i> if its operand is non-zero, non-null, or <i>true</i>, respectively.  For example, "if (ref?)" is <i>true</i> if 'ref' is non-null, and "if (count?)" is <i>true</i> if 'count' is non-zero.
+<p>
+<p>
+<a name="8.4.  Range Operators"></a>
+<br>
+
+<h2>8.4.  Range Operators</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+low upTo high [step <i>step_size</i>]<br>
+low upToLessThan high [step <i>step_size</i>]<br>
+high downToGreaterThan low [step <i>step_size</i>]<br>
+low .. high [step <i>step_size</i>]<br>
+low ..&lt; high [step <i>step_size</i>]<br>
+high ..&gt; low [step <i>step_size</i>]</tt></tt></td></tr></table></dd></dl>
+<p>
+The range operators create a sequence (technically a readable <i>Range</i> object) that can be iterated over or turned into a list with the <i>to_list</i> method.
+<p>
+<b>upTo</b> (..) counts from the first up to and including the last.  A negative step size must be explicitly stated if you wish to count backwards.
+<p>
+<b>upToLessThan</b> (..&lt;) counts from the first up to <i>but not including</i> the last.
+<p>
+<b>downTo</b> counts from the first down to and including the last.  The step size is assumed to be (-1) if no other step size is given.  downTo is the only range operator that doesn't have a shorthand equivalent.
+<p>
+<p>
+<b>downToGreaterThan</b> (..&gt;) counts from the first down to <i>but not including</i> the last.  The step size is assumed to be (-1) if no other step size is given.
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># print numbers 1 through 10</span><br>
+<span class='keyword'>forEach</span> (n in 1..10) println( n )<br>
+<br>
+<span class='comment'># print numbers 10 down to 1</span><br>
+<span class='keyword'>forEach</span> (n in 10..1 step -1) println( n )</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="8.5.  Type-checking and Cast Operators"></a>
+<br>
+
+<h2>8.5.  Type-checking and Cast Operators</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+obj instanceOf ClassOrAspect<br>
+obj notInstanceOf ClassOrAspect<br>
+obj.(BaseOrExtendedType)<br>
+num.(OtherPrimitiveType)<br>
+OtherPrimitiveType(num)</tt></tt></td></tr></table></dd></dl>
+<p>
+The <i>instanceOf</i> operator returns true if the class or aspect on the right-hand side is <i>the</i> type or is a base type of the object on the left-hand side.
+<p>
+A base Shape reference can be cast to an extended Circle reference with the syntax "shape.(Circle)".
+<p>
+For example:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='keyword'>forEach</span> (shape in shape_list)<br>
+&nbsp;&nbsp;<span class='keyword'>if</span> (shape instanceOf <span class='datatype'>Circle</span>) record_radius(shape.(<span class='datatype'>Circle</span>).radius)<br>
+endforEach</tt></tt></td></tr></table></dd></dl>
+<p>
+An extended reference can also be cast to a base type for purposes of selecting which overloaded method you wish to call (assuming there are several).  Casting references like this <i>never</i> converts one type of object to another; it merely causes the compiler to treat an object as a more specialized or more generalized base class or sub class.
+<p>
+Primitives may be cast in the same style: "intval = realval.(Int32)".  They may also be cast using "constructor-style" notation: "intval = Int32(realval)".
+<p>
+<p>
+<a name="8.6.  'duplicate' Operator"></a>
+<br>
+
+<h2>8.6.  'duplicate' Operator</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+value = duplicate( value )</tt></tt></td></tr></table></dd></dl>
+<p>
+Any object or primitive may be cloned with the operator <i>duplicate(existing)</i>.  
+<p>
+<i>duplicate</i> can be called on any value-type (such as a primitive or a compound) with no other preparation.
+<p>
+To be able to duplicate an object, you must define the <i>create_duplicate.ClassType</i> method.  The decision of whether to make a deep or shallow copy can be made on a case-by-case basis.
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass Test]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Name</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;first, last : <span class='datatype'>String</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( first, last );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> create_duplicate.<span class='datatype'>Name</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='datatype'>Name</span>( first, last )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> <span class='literal'>"$ $"</span> (first,last)<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Test</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Name</span> name1( <span class='literal'>"Abe"</span>, <span class='literal'>"Pralle"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Name</span> name2 = duplicate( name1 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"name1: $"</span> (name1) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"name2: $"</span> (name2) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"name1 is name2: $"</span> (name1 is name2) )<br>
+<span class='structure'>endClass</span><br>
+<br>
+</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="9. Control Structures"></a>
+<table class='section'><th>9. Control Structures</th><tr><td class='tdsection'>
+
+<a name="9.1.  Single-line and Multi-line Commands"></a>
+
+<h2>9.1.  Single-line and Multi-line Commands</h2>
+  <li> If a control structure has commands on the same line after the condition, it is taken to be a single-line statement - all commands on that line (separated by semi-colons) are part of the body and no terminal end marker is required.<br>
+<p>
+  <li> If a control structure doesn't have body commands following on the same line it's considered a multi-line command and an appropriate "end" command is looked for.<br>
+<p>
+  <li> A multi-part if/elseIf/else cannot mix and match single and multi-line blocks.  They must all be single or all be multi (otherwise nested <i>if</i> statements could be ambiguous).<br>
+<p>
+  <li> A single-line statement may not have any nested control structures.<br>
+<p>
+  <li> Not all control structures have a single-line variant.<br>
+<p>
+  <li> As a rule, any command that evaluates a condition for its trueness or falseness surrounds that condition with parentheses.  Thus "if (condition)" requires parentheses but "return expression" doesn't.<br>
+<p>
+</ul>
+<p>
+<a name="9.2.  Selection"></a>
+<br>
+
+<h2>9.2.  Selection</h2>
+<p>
+<a name="9.2.1.  'if'"></a>
+
+<h3>9.2.1.  'if'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+if (condition)<br>
+&nbsp;&nbsp;...<br>
+elseIf (condition)<br>
+&nbsp;&nbsp;...<br>
+else<br>
+&nbsp;&nbsp;...<br>
+endIf<br>
+<br>
+if (condition) single; line; cmds<br>
+elseIf (condition) single; line; cmds<br>
+else single; line; cmds</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="9.2.2.  'which'"></a>
+<br>
+
+<h3>9.2.2.  'which'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+which (expr)<br>
+&nbsp;&nbsp;case 1: ...<br>
+&nbsp;&nbsp;case a+b:&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;others:&nbsp;&nbsp;...<br>
+endWhich</tt></tt></td></tr></table></dd></dl>
+<p>
+<ul>
+  <li> The <i>which</i> structure replaces the <i>switch</i> or <i>select</i> of other languages.<br>
+  <li> Its cases may be any expressions, not just constants.<br>
+  <li> Internally <i>which</i> statements are converted into <i>if</i> statements.  The expression is saved in a local variable and then compared to each case value.<br>
+  <li> No "break" commands are necessary.<br>
+  <li> "others:" replaces "default:"<br>
+</ul>
+<p>
+<a name="9.2.3.  'contingent'"></a>
+<br>
+
+<h3>9.2.3.  'contingent'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+contingent<br>
+&nbsp;&nbsp;# body<br>
+&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;necessary( condition )<br>
+&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;sufficient( condition )<br>
+&nbsp;&nbsp;...<br>
+satisfied<br>
+&nbsp;&nbsp;# satisfied clause<br>
+&nbsp;&nbsp;...<br>
+unsatisfied<br>
+&nbsp;&nbsp;# unsatisfied clause<br>
+&nbsp;&nbsp;...<br>
+endContingent</tt></tt></td></tr></table></dd></dl>
+<p>
+Slag introduces contingents as a new kind of conditional.  They are similar in flow to a try/catch block but they deal with positive and negative logic tests rather than error generation.
+<p>
+<ul>
+  <li> Any commands may be placed in the body.  These commands can include <i>necessary()</i> and <i>sufficient()</i> logic tests.  <br>
+<p>
+  <li> If a <i>necessary</i> condition is <i>true</i>, execution proceeds to the next command.  If <i>false</i>, execution jumps to the <i>unsatisfied</i> clause.<br>
+<p>
+  <li> If a <i>sufficient</i> condition is <i>false</i>, execution proceeds.  If <i>true</i>, execution jumps to the <i>satisfied</i> clause.<br>
+<p>
+  <li> If all the body code is executed with no necessary conditions being false and no sufficient conditions being true, execution proceeds with the <i>satisfied</i> clause.<br>
+<p>
+  <li> If the <i>satisfied</i> clause executes, the <i>unsatisfied</i> clause is skipped.<br>
+</ul>
+<p>
+<a name="9.3.  Iteration"></a>
+<br>
+
+<h2>9.3.  Iteration</h2>
+<p>
+<a name="9.3.1.  'while'"></a>
+
+<h3>9.3.1.  'while'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+while (condition)<br>
+&nbsp;&nbsp;...<br>
+endWhile<br>
+<br>
+while (condition) single; line; cmds</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="9.3.2.  'forEach'"></a>
+<br>
+
+<h3>9.3.2.  'forEach'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+forEach (expr)<br>
+&nbsp;&nbsp;...<br>
+endForEach<br>
+<br>
+<br>
+forEach (var_name in expr)<br>
+&nbsp;&nbsp;...<br>
+endForEach<br>
+<br>
+<br>
+forEach (var_name of expr)<br>
+&nbsp;&nbsp;...<br>
+endForEach<br>
+<br>
+<br>
+list-&gt;method_to_call<br>
+<br>
+<br>
+forEach (expr) single; line; cmds<br>
+forEach (var_name in expr) single; line; cmds<br>
+forEach (var_name of expr) single; line; cmds<br>
+expr-&gt;call<br>
+&nbsp;</tt></tt></td></tr></table></dd></dl>
+The <i>forEach</i> command iterates over each element of a Reader or Readable expression.  These include lists ({3,4,5}), ranges (3..5), and files.  A Reader is something that incorporates the Reader aspect (and can check for has_another() as well as call peek() and read()); a Readable is something that incorporates the Readable aspect and can return a Reader object via a call to create_reader().
+<p>
+The <i>simple forEach</i> "forEach (1..10)" just repeats its body the given number of times.
+<p>
+The *forEach-in" creates a local variable with the specified name and sets it to each element in the expression.
+<p>
+The *forEach-of" creates a local Int32 variable with the specified name and sets it to the <i>index</i> of each element in the expression.
+<p>
+The *-&gt;<i> </i>auto-iterator* is a shorthand syntax for calling the same method on all objects of a list.  "obj-&gt;fn" is converted by the compiler to become "forEach (element in obj) a.fn".
+<p>
+<a name="9.3.3.  'loop'"></a>
+<br>
+
+<h3>9.3.3.  'loop'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+loop<br>
+&nbsp;&nbsp;...<br>
+endLoop<br>
+<br>
+<br>
+loop single; line; cmds</tt></tt></td></tr></table></dd></dl>
+<p>
+The <i>loop</i> command defines an infinite loop.  This is conceptually preferable over a "while (true)" loop.
+<p>
+<a name="9.3.4.  'repeat'"></a>
+<br>
+
+<h3>9.3.4.  'repeat'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+repeat<br>
+&nbsp;&nbsp;...<br>
+until (condition)</tt></tt></td></tr></table></dd></dl>
+<p>
+The body is repeated until the condition becomes true.
+<p>
+<a name="9.4.  try-catch and throw"></a>
+<br>
+
+<h2>9.4.  try-catch and throw</h2>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+try<br>
+&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;if (xyz) throw SomeError()<br>
+&nbsp;&nbsp;...<br>
+catch (ErrorType1 err)<br>
+&nbsp;&nbsp;...<br>
+catch (ErrorType2 err)<br>
+&nbsp;&nbsp;...<br>
+endTry</tt></tt></td></tr></table></dd></dl>
+<p>
+Slag's <i>Error</i> class is analogous to Java's <i>Exception</i> class.
+<p>
+There are no <i>checked exceptions</i> in Slag - errors may be thrown at any desired point and enclosing try-catches are entirely optional.
+<p>
+Error objects that are <i>instanceOf</i> the first <i>catch</i> type are handled by that <i>catch</i>, and so on.
+<p>
+Slag does not have a <i>finally</i> try-catch clause.
+<p>
+<a name="9.5.  Labels and Breaks"></a>
+<br>
+
+<h2>9.5.  Labels and Breaks</h2>
+<p>
+<a name="9.5.1.  Labels"></a>
+
+<h3>9.5.1.  Labels</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+if::label_name (condition)<br>
+while::label_name (condition)<br>
+repeat::label_name<br>
+...</tt></tt></td></tr></table></dd></dl>
+<p>
+Any structure can be labeled by following the initial keyword with a double-colon and then an arbitrary label name.
+<p>
+<a name="9.5.2.  'escapeX' "></a>
+<br>
+
+<h3>9.5.2.  'escapeX' </h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+escapeIf<br>
+escapeWhich<br>
+escapeContingent<br>
+escapeWhile<br>
+escapeLoop<br>
+escapeRepeat<br>
+escapeForEach<br>
+escapeTry<br>
+escape label_name</tt></tt></td></tr></table></dd></dl>
+<p>
+The 'escape' command is analogous to Java's "break".  <i>escapeWhile</i>, for instance, breaks out of the innermost <i>while</i> command that encloses the <i>escapeWhile</i>.
+<p>
+<a name="9.5.3.  'nextIteration'"></a>
+<br>
+
+<h3>9.5.3.  'nextIteration'</h3>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+nextIteration<br>
+nextIteration label_name</tt></tt></td></tr></table></dd></dl>
+<p>
+The 'nextIteration' command is analogous to Java's "continue".  Used by itself it skips the remaining body of the current <i>forEach</i>, <i>while</i>, <i>repeat</i>, or <i>loop</i> but continues the loop.  It can be used with a label to target an outer loop.
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='keyword'>forEach</span>::next_number (n in low..high)<br>
+&nbsp;&nbsp;<span class='keyword'>forEach</span> (d in {2,3..sqrt(n)} )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>if</span> (n % d == 0) <span class='keyword'>nextIteration</span> next_number<br>
+&nbsp;&nbsp;<span class='keyword'>endWhile</span><br>
+&nbsp;&nbsp;println( <span class='literal'>"$ is a prime number"</span> (d) )<br>
+<span class='keyword'>endWhile</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="10. Extended Classes"></a>
+<table class='section'><th>10. Extended Classes</th><tr><td class='tdsection'>
+
+<p>
+<a name="10.1.  Key Points"></a>
+
+<h2>10.1.  Key Points</h2>
+<ul>
+  <li> Each class extends exactly one other <i>base class</i>.<br>
+<p>
+  <li> If no base class is specified, a class extends class <i>Object</i> by default.<br>
+<p>
+  <li> 'init' constructor methods are inherited by extended classes unless they are "limited".<br>
+<p>
+Example:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+limited <span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;<span class='comment'># non-inherited constructor</span><br>
+<br>
+<span class='keyword'>method</span> init( <span class='datatype'>Int32</span> n ):<br>
+&nbsp;&nbsp;<span class='comment'># inherited constructor</span><br>
+<br>
+private limited init( <span class='datatype'>String</span> st ):<br>
+&nbsp;&nbsp;<span class='comment'># private, non-inherited constructor</span></tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> Use the syntax <i>prior.method_name</i> instead of <i>super.method_name</i> to call the overridden version of a method instead of the current version.  This applies to constructors as well (<i>prior.init</i>).<br>
+<p>
+  <li> As in Java, the type of the reference variable determines what methods <i>can</i> be called.  The type of the object itself determines the version of the method that <i>is</i> called (single dynamic dispatch).<br>
+<p>
+  <li> Abstract methods are defined by putting the keyword "abstract" in place of any other method body.<br>
+<p>
+  <li> Use the operators <i>instanceOf</i> and <i>notInstanceOf</i> to determine if an object is <i>at least</i> a certain class (and possibly more).<br>
+<p>
+</ul>
+<p>
+<a name="10.2.  Example: Shape class"></a>
+<br>
+
+<h2>10.2.  Example: Shape class</h2>
+<dl><dd><table class='code'><th> shape.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass ShapeTest]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>ShapeTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Shape</span> s1 = <span class='datatype'>Circle</span>( 4 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Shape</span> s2 = <span class='datatype'>Rectangle</span>( 3, 4 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Shape</span> s3 = <span class='datatype'>Square</span>( 5 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;display_info( s1 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;display_info( s2 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;display_info( s3 )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> display_info( <span class='datatype'>Shape</span> s ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( s )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"&nbsp;&nbsp;is a shape:&nbsp;&nbsp;&nbsp;&nbsp; $"</span> (s instanceOf <span class='datatype'>Shape</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"&nbsp;&nbsp;is a circle:&nbsp;&nbsp;&nbsp;&nbsp;$"</span> (s instanceOf <span class='datatype'>Circle</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"&nbsp;&nbsp;is a rectangle: $"</span> (s instanceOf <span class='datatype'>Rectangle</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"&nbsp;&nbsp;is a square:&nbsp;&nbsp;&nbsp;&nbsp;$"</span> (s instanceOf <span class='datatype'>Square</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Shape</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> name.<span class='datatype'>String</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> area.<span class='datatype'>Real64</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;abstract<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> perimeter.<span class='datatype'>Real64</span>: abstract<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"A $ with area $ and perimeter $"</span> ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name,area,perimeter)<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Circle</span> : <span class='datatype'>Shape</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;radius : <span class='datatype'>Real64</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( radius );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> name.<span class='datatype'>String</span>:&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"circle"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> area.<span class='datatype'>Real64</span>:&nbsp;&nbsp;<span class='keyword'>return</span> pi * radius^2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> perimeter.<span class='datatype'>Real64</span>: <span class='keyword'>return</span> pi * radius<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Rectangle</span> : <span class='datatype'>Shape</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;width, height : <span class='datatype'>Real64</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( width, height );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> name.<span class='datatype'>String</span>:&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"rectangle"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> area.<span class='datatype'>Real64</span>:&nbsp;&nbsp;<span class='keyword'>return</span> width * height<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> perimeter.<span class='datatype'>Real64</span>: <span class='keyword'>return</span> 2*width + 2*height<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Square</span> : <span class='datatype'>Rectangle</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( <span class='datatype'>Real64</span> size ): prior.init( size, size )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( width, height ): throw <span class='datatype'>UnsupportedMethodError</span>()<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> name.<span class='datatype'>String</span>:&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"square"</span><br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="11. Advanced Class Topics"></a>
+<table class='section'><th>11. Advanced Class Topics</th><tr><td class='tdsection'>
+
+<a name="11.1.  init_class method"></a>
+
+<h2>11.1.  init_class method</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>MathConstants</span><br>
+&nbsp;&nbsp;<span class='category'>CLASS_PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;x=3 : <span class='datatype'>Int32</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;&nbsp; : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>CLASS_METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init_class:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># implicit </span><span class='literal'>"x = 3"</span> statement here<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y = 4<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Every class has a hidden method named <i>init_class()</i> that is called once at the beginning of a Slag program.  Its purpose is to perform all the class property initializations.  If you define a class method called <i>init_class()</i>, any statements you write will be performed after class property initializations.
+<p>
+<a name="11.2.  init_object method"></a>
+<br>
+
+<h2>11.2.  init_object method</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Alpha</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;a=3 : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init_object:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># implicit </span><span class='literal'>"a = 3"</span> here<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"a = $"</span> (a) )<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Beta</span> : <span class='datatype'>Alpha</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;b=4 : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init_object:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># implicit </span><span class='literal'>"prior.init_object; b = 4"</span> here<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"b = $"</span> (b) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Beta init"</span> )<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>TestInitObject</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='datatype'>Beta</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># prints:</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; a = 3</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; b = 4</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'>#&nbsp;&nbsp; Beta init</span><br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Every class has a hidden object method called <i>init_object()</i> that is called when an object is first created, before a regular <i>init()</i> method is called.  Every <i>init_object()</i> method begins with a call to <i>prior.init_object()</i>, then performs property initialization.  If you define an <i>init_object()</i> method, any statements you write will be performed after the automatic initialization.
+<p>
+<a name="11.3.  Operator Methods"></a>
+<br>
+
+<h2>11.3.  Operator Methods</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='keyword'>method</span> op+( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op-( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op*( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op/( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op%( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op^( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op&amp;( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op|( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op~( <span class='datatype'>Type</span> rhs ).<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op-.<span class='datatype'>Type</span>:<br>
+<span class='keyword'>method</span> op!.<span class='datatype'>Type</span>:</tt></tt></td></tr></table></dd></dl>
+<p>
+All of the basic arithmetic, relational, and bitwise operators can be defined on a per-class basis.
+<p>
+When <i>a</i> is a reference, expressions of the form "a + b" are transformed into "a.op+(b)".  The op+ must be defined in a's class, but the parameter and return type can be any desired value.  Multiple overloaded methods are fine under the normal rules (signatures must vary).
+<p>
+<a name="11.3.1.  Example: CaesarCypherMessage"></a>
+
+<h3>11.3.1.  Example: CaesarCypherMessage</h3>
+<p>
+<dl><dd><table class='code'><th> caesar.slag</th><tr class='code'><td class='code'><tt>
+<span class='directive'>[mainClass Test]</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Test</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>CaesarCypherMessage</span> mesg( <span class='literal'>"Slag is awesome!"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( mesg - 1 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( mesg + 1 )<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>CaesarCypherMessage</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;message : <span class='datatype'>String</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( message );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> op+( <span class='datatype'>Int32</span> shift ).<span class='datatype'>CaesarCypherMessage</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>StringBuilder</span> result()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>forEach</span> (ch in message)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>if</span> (ch.is_uppercase()) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ch = <span class='datatype'>Char</span>( (ch+shift).wrap('<span class='datatype'>A</span>'.<span class='datatype'>Int32</span>,'<span class='datatype'>Z</span>'.<span class='datatype'>Int32</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>elseIf</span> (ch.is_lowercase()) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ch = <span class='datatype'>Char</span>( (ch+shift).wrap('a'.<span class='datatype'>Int32</span>,'z'.<span class='datatype'>Int32</span>) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endIf</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.add( ch )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endForEach</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='datatype'>CaesarCypherMessage</span>( result.to<span class='category'>_S</span>tring )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> op-( <span class='datatype'>Int32</span> shift ).<span class='datatype'>CaesarCypherMessage</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> this + (-shift)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> message<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="11.4.  'promote' Method"></a>
+<br>
+
+<h2>11.4.  'promote' Method</h2>
+If "a + b" is encountered and <i>b</i> is an object but <i>a</i> is not, the expression is converted to:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='category'>BT</span>ype.promote(a) + b</tt></tt></td></tr></table></dd></dl>
+<p>
+For example, here's a fragment of some "BigInteger" class that would handle "5 + BigInteger(7)"
+(which would become "BigInteger.promote(5).op+(BigInteger(7))":
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>BigInteger</span><br>
+&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;<span class='member_category'>CLASS_METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> promote( <span class='datatype'>Int32</span> n ).<span class='datatype'>BitInteger</span>: <span class='keyword'>return</span> <span class='datatype'>BigInteger</span>(n)<br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( <span class='datatype'>Int32</span> n ): ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> op+( <span class='datatype'>BigInteger</span> other ).<span class='datatype'>BigInteger</span>: ...<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="12. Compounds"></a>
+<table class='section'><th>12. Compounds</th><tr><td class='tdsection'>
+
+Syntax:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+compound CompoundName( Type1 name1, Type2 name2, ... )</tt></tt></td></tr></table></dd></dl>
+<p>
+Compounds are composite by-value types that are composed of one or more primitives 
+or other compounds.
+<p>
+<ul>
+  <li> Compounds are by-value types<br>
+  <li> Compounds are a composite of other, existing primitives and compounds (no references allowed).<br>
+  <li> Compound members can be individually read but not individually written.<br>
+  <li> To alter a compound, it must be reassigned as a compound with different values.<br>
+  <li> More efficient than objects when:<br>
+  <ul>
+    <li> There are a small number of members.<br>
+    <li> Multiple references to the same data are unnecessary.<br>
+    <li> There are no codependent elements (if A contains a B, B can't contain an A).<br>
+  </ul>
+</ul>
+<p>
+Example:
+<dl><dd><table class='code'><th> compound.slag</th><tr class='code'><td class='code'><tt>
+<span class='structure'>compound</span> <span class='datatype'>MonthDayYear</span>( <span class='datatype'>Int32</span> month, <span class='datatype'>Int32</span> day, <span class='datatype'>Int32</span> year )<br>
+...<br>
+local <span class='datatype'>MonthDayYear</span> today( 1, 18, 2008 )&nbsp;&nbsp;<span class='comment'># okay</span><br>
+local <span class='datatype'>MonthDayYear</span> payday = today&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='comment'># okay</span><br>
+payday.year = 2009&nbsp;&nbsp;<span class='comment'># ILLEGAL - can't write to individual members!</span><br>
+payday = <span class='datatype'>MonthDayYear</span>( today.month, today.day, 2009 )&nbsp;&nbsp; <span class='comment'># okay</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="13. 'enum' definitions"></a>
+<table class='section'><th>13. 'enum' definitions</th><tr><td class='tdsection'>
+
+Enums (rhymes with Tums) offer the same power and flexibility as they do in Java.  By convention the type-name
+is in ALL_CAPS to make enum parameters easy to spot; the categories (enum values) are in lowercase.
+<p>
+A simple enum:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+enum <span class='category'>AI_STATE</span><br>
+&nbsp;&nbsp;<span class='member_category'>CATEGORIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;idle, wander, seek<br>
+endEnum<br>
+...<br>
+<span class='structure'>class</span> <span class='datatype'>Monster</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;plan = <span class='category'>AI_STATE</span>.idle : <span class='category'>AI_STATE</span><br>
+&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> decide_move:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>which</span> (plan)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>AI_STATE</span>.idle: ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>AI_STATE</span>.wander: ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>case</span> <span class='category'>AI_STATE</span>.seek: ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...</tt></tt></td></tr></table></dd></dl>
+<p>
+A more complex enum that adds an additional property to each category:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+enum <span class='category'>TERRAIN_FLAGS</span><br>
+&nbsp;&nbsp;<span class='member_category'>CATEGORIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;obstructed(1), mire(2), special(4)<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;mask : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( mask );<br>
+endEnum<br>
+<br>
+...<br>
+<span class='keyword'>method</span> has_flag( <span class='category'>TERRAIN_FLAGS</span> f ):<br>
+&nbsp;&nbsp;<span class='keyword'>return</span> (flags &amp; f.mask) != 0<br>
+<br>
+<span class='keyword'>method</span> is_obstructed.<span class='datatype'>Boolean</span>: <br>
+&nbsp;&nbsp;<span class='keyword'>return</span> has_flag(<span class='category'>TERRAIN_FLAGS</span>.obstructed)</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="13.1. BitFlags enum augment"></a>
+
+<h2>13.1. BitFlags enum augment</h2>
+An enumeration augment called BitFlags is provided in the standard library to meet a common need for enumerated values: having a set of bit flags that can be manipulated with bitwise OR (setting/merging), AND (clearing), and NOT (toggling).  See type BitFlags in the API for an example.
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="14. Templates"></a>
+<table class='section'><th>14. Templates</th><tr><td class='tdsection'>
+
+<p>
+<a name="14.1.  Non-template / Template Comparison"></a>
+
+<h2>14.1.  Non-template / Template Comparison</h2>
+Non-templated example:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Test</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>IntWrapper</span> integer(25)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>RealWrapper</span> real(3.14)<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>IntWrapper</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;value : <span class='datatype'>Int32</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( value );<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>RealWrapper</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;value : <span class='datatype'>Real64</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( value );<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Templated example:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Test</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Wrapper</span><span class='datatype'>&lt;&lt;<span class='datatype'>Int32</span>&gt;&gt;</span> integer(25)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Wrapper</span><span class='datatype'>&lt;&lt;<span class='datatype'>Real</span>&gt;&gt;</span> real(3.14)<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Wrapper</span><span class='datatype'>&lt;&lt;<span class='datatype'>DataType</span>&gt;&gt;</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;value : <span class='datatype'>DataType</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( value );<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="14.2.  Key Points"></a>
+<br>
+
+<h2>14.2.  Key Points</h2>
+<ul>
+  <li> Templates are a C++-style mechanism for instantiating specialized classes; they are not like Java-style generics.<br>
+<p>
+  <li> Templates are to classes what classes are to objects.  You can define a single template and generate several classes from it as necessary.  <br>
+<p>
+  <li> You write a template class like you would a normal class except that certain key types are defined as <i>placeholder types</i> rather than being a specific type.<br>
+<p>
+  <li> When you refer to the template in code you must supply exact types to substitute for the placeholder types.  Each unique template reference causes the compiler to generate an entirely new class that includes the unique substitution types in lieu of the placeholder types.  At run-time, instanced template classes are just as fast and efficient as non-template-based classes (because at run-time they <i>are</i> just another class).<br>
+<p>
+  <li> Template placeholder types can have default substitution types in the same way that methods can have default parameter values.  Default substitution types may specify earlier placeholder types, in which case both placeholder types are assigned the same substitution type.<br>
+<p>
+  <li> Compounds can be defined as templates.<br>
+<p>
+</ul>
+<p>
+<a name="14.3.  Example: Pair"></a>
+<br>
+
+<h2>14.3.  Example: Pair</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Test</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Pair</span><span class='datatype'>&lt;&lt;<span class='datatype'>String</span>&gt;&gt;</span> name( <span class='literal'>"Abe"</span>, <span class='literal'>"Pralle"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Pair</span><span class='datatype'>&lt;&lt;<span class='datatype'>Int32</span>,<span class='datatype'>Real64</span>&gt;&gt;</span> half_circle( 180, pi )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"name: $"</span> (name) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"half_circle: $"</span> (half_circle) )<br>
+<span class='structure'>endClass</span><br>
+<br>
+<span class='structure'>class</span> <span class='datatype'>Pair</span><span class='datatype'>&lt;&lt;<span class='datatype'>FirstType</span>,<span class='datatype'>SecondType</span>=<span class='datatype'>FirstType</span>&gt;&gt;</span><br>
+&nbsp;&nbsp;<span class='category'>PROPERTIES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;first&nbsp;&nbsp;: <span class='datatype'>FirstType</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;second : <span class='datatype'>SecondType</span><br>
+<br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( first, second );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> to<span class='category'>_S</span>tring.<span class='datatype'>String</span>: <span class='keyword'>return</span> <span class='literal'>"[$,$]"</span> (first,second)<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="14.4. Template Conditionals"></a>
+<br>
+
+<h2>14.4. Template Conditionals</h2>
+<i>Template conditionals</i> allow template instances to be customized for particular substitution types by including or omitting certain members.
+<p>
+Examples:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Vector</span><span class='datatype'>&lt;&lt;<span class='datatype'>DataType</span>&gt;&gt;</span><br>
+<span class='directive'>[if DataType is reference]</span><br>
+&nbsp;&nbsp;<span class='member_category'>BASE_TYPES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='datatype'>BaseVector</span><span class='datatype'>&lt;&lt;<span class='datatype'>Object</span>&gt;&gt;</span><br>
+<span class='directive'>[else]</span><br>
+&nbsp;&nbsp;<span class='member_category'>BASE_TYPES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='datatype'>BaseVector</span><span class='datatype'>&lt;&lt;<span class='datatype'>DataType</span>&gt;&gt;</span><br>
+<span class='directive'>[endIf]</span><br>
+...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;</tt></tt></td></tr></table></dd></dl>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>MyArray</span><span class='datatype'>&lt;&lt;<span class='datatype'>DataType</span>&gt;&gt;</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init( <span class='datatype'>Int32</span> size ):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ensure_capacity( size )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>forEach</span> (i in 1..size) set( i, default_value )<br>
+<br>
+<span class='directive'>[if DataType is reference]</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> default_value.<span class='datatype'>DataType</span>: <span class='keyword'>return</span> null<br>
+<br>
+<span class='directive'>[elseIf DataType is numerical]</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> default_value.<span class='datatype'>DataType</span>: <span class='keyword'>return</span> 0<br>
+<br>
+<span class='directive'>[elseIf DataType == Boolean]</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> default_value.<span class='datatype'>DataType</span>: <span class='keyword'>return</span> <span class='literal'>false</span><br>
+<br>
+<span class='directive'>[else]</span><br>
+&nbsp;&nbsp;...<br>
+<span class='directive'>[endIf]</span><br>
+...</tt></tt></td></tr></table></dd></dl>
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+...<br>
+<span class='directive'>[if DataType == Real64 or DataType == Real32]</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> divide( <span class='datatype'>DataType</span> a, <span class='datatype'>DataType</span> b ).<span class='datatype'>DataType</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> a / b<br>
+<span class='directive'>[else]</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> divide( <span class='datatype'>DataType</span> a, <span class='datatype'>DataType</span> b ).<span class='datatype'>DataType</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>if</span> (b == 0) throw <span class='datatype'>DivideByZeroError</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> a / b<br>
+<span class='directive'>[endIf]</span><br>
+</tt></tt></td></tr></table></dd></dl>
+<p>
+<ul>
+  <li> Use '==', '!=', 'instanceOf', and 'notInstanceOf' to compare two specific types.<br>
+<p>
+  <li> Use 'is' and 'isNot' to determine whether or not a specific type is of a certain category.  Categories include:<br>
+<p>
+  <ul>
+    <li> reference (any class, aspect, or enum)<br>
+    <li> compound<br>
+    <li> enum (also counts as a reference)<br>
+    <li> primitive<br>
+    <li> numerical (any of the integer or real primitives)<br>
+    <li> logical (a Boolean or Ternary primitive)<br>
+    <li> integer (Int64, Int32, Int16, Int8, Char, or Byte)<br>
+    <li> real (Real64 or Real32)<br>
+<p>
+  </ul>
+  <li> Use 'or' operators to allow multiple type comparisons to satisfy an 'if' or 'elseIf'.<br>
+<p>
+  <li> Template directives don't support more complex logic (most notably there is no 'and').<br>
+<p>
+  <li> Template directives may be nested.<br>
+<p>
+</ul>
+<p>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="15. Aspects"></a>
+<table class='section'><th>15. Aspects</th><tr><td class='tdsection'>
+
+Slag aspects are a new approach to aspect-oriented programming and a powerful replacement for Java interfaces.  
+<p>
+In simplest terms, an aspect is like a Java interface that can include method bodies and additional instance variables in its definition.  Where Java <i>implements interfaces</i>, Slag <i>incorporates aspects</i>.  During aspect incorporation, aspect method bodies are "cut &amp; pasted" into existing methods of the same name.  The syntax for controlling the order of this <i>aspect layering</i> is similar to that of making a prior (super-class) call.
+<p>
+Example:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>Test</span> : <span class='datatype'>IncreaseFormatValue</span>, <span class='datatype'>AddFormatBrackets</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( format(5) )&nbsp;&nbsp;<span class='comment'>#prints out: &lt;6&gt;</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> format( <span class='datatype'>Int32</span> n ).<span class='datatype'>String</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"$"</span> (n)<br>
+<span class='structure'>endClass</span><br>
+<br>
+overlaying <span class='structure'>aspect</span> <span class='datatype'>IncreaseFormatValue</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> format( <span class='datatype'>Int32</span> n ).<span class='datatype'>String</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> underlying( n + 1 )<br>
+<span class='structure'>endAspect</span><br>
+<br>
+overlaying <span class='structure'>aspect</span> <span class='datatype'>AddFormatBrackets</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> format( <span class='datatype'>Int32</span> n ).<span class='datatype'>String</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> <span class='literal'>"&lt;$&gt;"</span> (underlying(n))<br>
+<span class='structure'>endAspect</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Note that after the above example is compiled, there is a <i>single</i> format method that is called <i>once</i>.
+<p>
+<ul>
+  <li> Each aspect must be declared as <i>overlaying</i> or <i>underlying</i> as a whole, which indicates the default order methods should be merged in.  Individual methods can then be specified as being underlying or overlaying contrary to the default.<br>
+<p>
+  <li> In the class declaration:<br>
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+class ExtendedClass : BaseClass, AspectAlpha, AspectBeta</tt></tt></td></tr></table></dd></dl>
+<p>
+methods are layered in the following order (the top one listed here is the bottom-most layer):
+<p>
+  <ul>
+    <li> All methods from BaseClass.<br>
+    <li> <i>Underlying</i> methods from AspectAlpha.<br>
+    <li> <i>Underlying</i> methods from AspectBeta.<br>
+    <li> All methods from ExtendedClass.<br>
+    <li> <i>Overlaying</i> methods from AspectAlpha.<br>
+    <li> <i>Overlaying</i> methods from AspectBeta.<br>
+<i></i>
+<p>
+(Note that all "underlying" code references from underlying AspectAlpha methods would be adjusted to be "prior" calls instead)
+<p>
+  </ul>
+  <li> Methods may reference "underlying" code <i>even if there is no underlying code</i> as long as no attempt is made to use an underlying return value.  Such calls to non-existent code are silently removed.<br>
+<p>
+  <li> Aspects can be used just like Java interfaces (where all methods are abstract) if desired.<br>
+<p>
+  <li> Object references can be of aspect types rather than class types.  The same method-calling rules and restrictions apply as are found with Java interfaces.<br>
+<p>
+</ul>
+<p>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="16. Augments"></a>
+<table class='section'><th>16. Augments</th><tr><td class='tdsection'>
+
+Augments are a way to add additional members and base types to a class separate from its primary definition.
+<p>
+Examples:
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># Operators methods (such as op+) are only automatically added</span><br>
+<span class='comment'># to primitive-type lists.&nbsp;&nbsp;Add them the </span><span class='literal'>"Complex"</span> <span class='datatype'>ArrayList</span>:<br>
+<span class='structure'>augment</span> <span class='datatype'>ArrayList</span><br>
+<span class='directive'>[if DataType == Complex]</span><br>
+&nbsp;&nbsp;<span class='member_category'>BASE_TYPES</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='datatype'>ListArithmetic</span><span class='datatype'>&lt;&lt;<span class='datatype'>Complex</span>&gt;&gt;</span><br>
+<span class='directive'>[endIf]</span><br>
+<span class='structure'>endAugment</span></tt></tt></td></tr></table></dd></dl>
+<p>
+The following example is equivalent to the example above:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+# Operators methods (such as op+) are only automatically added<br>
+# to primitive-type lists.&nbsp;&nbsp;Add them the "Complex" ArrayList:<br>
+augment ArrayList&lt;&lt;Complex&gt;&gt;<br>
+&nbsp;&nbsp;BASE_TYPES<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ListArithmetic&lt;&lt;Complex&gt;&gt;<br>
+endAugment</tt></tt></td></tr></table></dd></dl>
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># Add a debugging aspect to class MyGame</span><br>
+<span class='structure'>augment</span> <span class='datatype'>MyGame</span> : <span class='datatype'>DebugMyGame</span>;</tt></tt></td></tr></table></dd></dl>
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># Add a new class method to class Global</span><br>
+<span class='structure'>augment</span> <span class='datatype'>Global</span><br>
+&nbsp;&nbsp;<span class='member_category'>CLASS_METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> num_digits( <span class='datatype'>Int32</span> num, <span class='datatype'>Int32</span> base=10 ).<span class='datatype'>Int32</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Int32</span> count = 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>while</span> (num != 0) count++; num /= 10<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span> count<br>
+<span class='structure'>endAugment</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="17. Primitive Methods"></a>
+<table class='section'><th>17. Primitive Methods</th><tr><td class='tdsection'>
+
+Source code:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='datatype'>Int32</span> n = 3<br>
+n = n.plus( 5 )</tt></tt></td></tr></table></dd></dl>
+<p>
+Compiler converts to:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='datatype'>Int32</span> n = 3<br>
+n = <span class='datatype'>Global</span>.plus( n, 5 )</tt></tt></td></tr></table></dd></dl>
+<p>
+To define the <i>plus()</i> class method in class Global:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>augment</span> <span class='datatype'>Global</span><br>
+&nbsp;&nbsp;<span class='member_category'>CLASS_METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> plus( <span class='datatype'>Int32</span> num, <span class='datatype'>Int32</span> delta ).<span class='datatype'>Int32</span>: <span class='keyword'>return</span> num + delta<br>
+<span class='structure'>endAugment</span></tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="18. Arrays and Lists"></a>
+<table class='section'><th>18. Arrays and Lists</th><tr><td class='tdsection'>
+
+<a name="18.1.  Arrays"></a>
+
+<h2>18.1.  Arrays</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>Array</span><span class='datatype'>&lt;&lt;<span class='datatype'>Int32</span>&gt;&gt;</span> nums(10)<br>
+nums[0] = 5<br>
+println( nums[1] )</tt></tt></td></tr></table></dd></dl>
+<p>
+<ul>
+  <li> Arrays are built-in to Slag, but for most applications the programmer should use Lists instead.<br>
+<p>
+  <li> Arrays are objects and can be stored in an Object reference.<br>
+<p>
+  <li> Arrays are not co-variant; an array of Circle objects cannot be treated as an array of Shape objects.<br>
+</ul>
+<p>
+<a name="18.2.  Lists"></a>
+<br>
+
+<h2>18.2.  Lists</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>Int32</span>[] nums()<br>
+local <span class='datatype'>Int32</span>[] nums(8)<br>
+local <span class='datatype'>Int32</span>[] nums = <span class='datatype'>Int32</span>[8]<br>
+local <span class='datatype'>Int32</span>[] nums = { 3, 4, 5 }<br>
+local <span class='datatype'>Int32</span>[] nums = { -5..-1, 1..5 }<br>
+local <span class='datatype'>ArrayList</span><span class='datatype'>&lt;&lt;<span class='datatype'>Int32</span>&gt;&gt;</span> nums()<br>
+nums.add( x )<br>
+nums.add( y )<br>
+println( nums.count )<br>
+<span class='keyword'>forEach</span> (n in nums) println( n )<br>
+<span class='keyword'>forEach</span> (index of nums) println( n[i] )<br>
+nums[ {0,n.count-1} ] = 1<br>
+nums[1..n.count-2] = 0<br>
+nums.clear</tt></tt></td></tr></table></dd></dl>
+<p>
+<ul>
+  <li> "Array-style" notation creates and manipulates Lists (aka vectors) in Slag.<br>
+<p>
+  <li> List references are created as type <i></i>List&lt;&lt;ElementType&gt;&gt;<i></i> and literal lists<br>
+are created as type <i></i>ArrayList&lt;&lt;ElementType&gt;&gt;<i></i> (which is compatible with List).
+<p>
+  <li> Multi-dimensional lists are "lists of lists" and are not required to be rectangular.<br>
+<p>
+</ul>
+<p>
+<a name="18.2.1.  Operators and Lists"></a>
+
+<h3>18.2.1.  Operators and Lists</h3>
+The standard numerical and bitwise operators are defined for lists of the appropriate primitive types.  They provide list functionality that's similar to Matlab's matrix functionality:
+<p>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+local <span class='datatype'>Int32</span>[] nums = {1..10}<br>
+<br>
+<span class='comment'># {1,2,3,4,5,6,7,8,9,10}</span><br>
+println( nums )<br>
+<br>
+<span class='comment'># {1,0,1,0,1,0,1,0,1,0}</span><br>
+println( nums % 2 )<br>
+<br>
+<span class='comment'># {false,true,false,true,false,true,false,true,false,true}</span><br>
+println( nums % 2 == 0 )<br>
+<br>
+<span class='comment'># {2,4,6,8,10}</span><br>
+println( nums[nums % 2 == 0] )</tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="18.2.2. Technical Details"></a>
+<br>
+
+<h3>18.2.2. Technical Details</h3>
+<ul>
+  <li> The following:<br>
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+local String[] ids = { "Some", "work", "of", "noble", "note" }<br>
+local Int32[][] map = { {1,2,3}, {4,5,6} }</tt></tt></td></tr></table></dd></dl>
+<p>
+is equivalent to:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+local List&lt;&lt;String&gt;&gt; ids = ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ArrayList&lt;&lt;String&gt;&gt;(5).add("Some") ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.add("work").add("of").add("noble").add("note")<br>
+<br>
+local List&lt;&lt;List&lt;&lt;Int32&gt;&gt;&gt;&gt; map = ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ArrayList&lt;&lt;List&lt;&lt;Int32&gt;&gt;&gt;&gt;(2) ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.add( ArrayList&lt;&lt;Int32&gt;&gt;(3).add(1).add(2).add(3) ) ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.add( ArrayList&lt;&lt;Int32&gt;&gt;(3).add(4).add(5).add(6) )</tt></tt></td></tr></table></dd></dl>
+<p>
+  <li> Every List&lt;&lt;DataType&gt;&gt; incorporates aspect <i></i>Readable&lt;&lt;DataType&gt;&gt;<i></i>.  This<br>
+means that create_reader may be called to obtain a <i></i>Reader&lt;&lt;DataType&gt;&gt;<i></i>
+object.
+<p>
+  <li> Something that's <i>Readable</i> can, by definition, have create_reader called<br>
+upon it over and over successfully, for the same result each time.  Hence
+<i>Readers</i> are not themselves <i>Readable</i> because they are not suited to
+recycling (nor is a Readable thing itself a Reader).
+<p>
+</ul>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="19.  Standard Library &amp; API Reference"></a>
+<table class='section'><th>19.  Standard Library &amp; API Reference</th><tr><td class='tdsection'>
+
+Refer to a Slag language reference (such as slag_reference.html) for an description
+of all the classes and methods available to Slag programs.  Here's a brief overview
+of some of them:
+<p>
+<a name="19.1.  Global"></a>
+
+<h2>19.1.  Global</h2>
+Many of the "built-in" methods and methods that operate on primitives and compounds
+are actually Global class methods.
+<p>
+<a name="19.2.  RequiresCleanup"></a>
+<br>
+
+<h2>19.2.  RequiresCleanup</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>OpenNetworkConnection</span> : <span class='datatype'>RequiresCleanup</span><br>
+...<br>
+<span class='keyword'>method</span> cleanup:<br>
+&nbsp;&nbsp;...</tt></tt></td></tr></table></dd></dl>
+<p>
+Objects of classes that incorporate RequiresCleanup have their <i>cleanup</i> method
+called when they have no more references to them and their memory is about to
+be freed.  Object allocation and deletion involving objects that require cleanup
+is a little slower than for other objects.
+<p>
+<a name="19.3.  File I/O"></a>
+<br>
+
+<h2>19.3.  File I/O</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='comment'># Reverse a text file</span><br>
+<span class='structure'>class</span> <span class='datatype'>Reverser</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>if</span> (command_line_args.count == 0) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Usage: slag progname filename"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>return</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endIf</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Char</span>[] chars()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>forEach</span> (ch in <span class='datatype'>File</span>(command_line_args[0])) chars.add( ch )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chars.reverse<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='datatype'>Pump</span><span class='datatype'>&lt;&lt;<span class='datatype'>Char</span>&gt;&gt;</span>( chars, <span class='datatype'>File</span>(<span class='literal'>"reversed.txt"</span>) ).pump_all<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="19.4.  HashTable"></a>
+<br>
+
+<h2>19.4.  HashTable</h2>
+<dl><dd><table class='code'><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>HashTableExample</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>HashTable</span><span class='datatype'>&lt;&lt;<span class='datatype'>String</span>,<span class='datatype'>Int32</span>&gt;&gt;</span> ages()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ages[<span class='literal'>"Abe"</span>] = 34<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ages[<span class='literal'>"Murphy"</span>] = 30<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ages[<span class='literal'>"Leah"</span>] = 20<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Leah is $ years old!"</span> (ages[<span class='literal'>"Leah"</span>]) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Murphy is $ years old!"</span> (ages[<span class='literal'>"Murphy"</span>]) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Abe is $ years old!"</span> (ages[<span class='literal'>"Abe"</span>]) )<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+<a name="19.5.  Pattern"></a>
+<br>
+
+<h2>19.5.  Pattern</h2>
+Slag patterns use a syntax that's closer to EBNF than to regular expressions.
+<p>
+<p>
+<dl><dd><table class='code'><th> patterns.slag</th><tr class='code'><td class='code'><tt>
+<span class='structure'>class</span> <span class='datatype'>PatternTest</span><br>
+&nbsp;&nbsp;<span class='member_category'>METHODS</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>method</span> init:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Pattern</span> name_pattern( <span class='literal'>"{id} ws {id}"</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>Pattern</span> phone_number_pattern( <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='literal'>"(not digit)* {digit*3} (not digit)* "</span>...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='literal'>"{digit*3} (not digit)* {digit*4}"</span> )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>String</span> name = input<span class='category'>_S</span>tring( <span class='literal'>"Enter your name: "</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>while</span> (not name.matches(name_pattern))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name = input<span class='category'>_S</span>tring( <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span class='datatype'>That</span> should be <span class='literal'>"first last"</span>.&nbsp;&nbsp;<span class='datatype'>Try</span> again: // )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endWhile</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( name.replace( name_pattern, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span class='datatype'>Hi</span> $[0] $[1] - or should <span class='datatype'>I</span> say <span class='literal'>"$[1], $[0]"</span>?// ) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local <span class='datatype'>String</span> number = input<span class='category'>_S</span>tring( <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='literal'>"Now enter your phone number: "</span> )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>while</span> (not number.matches(phone_number_pattern))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number = input<span class='category'>_S</span>tring( <span class='literal'>"Try again (10 digits): "</span> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='keyword'>endWhile</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"The digit groups are: $"</span> <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(number.extract_groups(phone_number_pattern)) )<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println( <span class='literal'>"Your number is $"</span> (number.replace( name_pattern, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='literal'>"($[0]) $[1]-$[2]"</span> )) )<br>
+<br>
+<span class='structure'>endClass</span></tt></tt></td></tr></table></dd></dl>
+<p>
+Patterns are composed of the following symbols:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+'...'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- literal text term, e.g. 'simulation_speed'<br>
+()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - group of terms - counts as a term itself<br>
+{}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - tagged group of terms - when matched, saved in results <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; list<br>
+?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- zero or one of the preceding term<br>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- one or more of the preceding term<br>
+*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- zero or more of the preceding term<br>
+*3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - exactly 3 of the preceding term<br>
+*4..6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 4, 5, or 6 of the preceding term<br>
+'c1'..'c2' - matches any single character in the range c1 through c2<br>
+not&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- matches any single character so long as the next term<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; is not satisfied.<br>
+or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - pattern can be satisfied by previous term or next term</tt></tt></td></tr></table></dd></dl>
+<p>
+The following identifiers are also defined as the specified patterns:
+<p>
+<dl><dd><table class='indented'><tr class='indented'><td class='indented'><tt>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;space - ' '<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tab - [tab character]<br>
+&nbsp;whitespace - (space or tab) * <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ws - whitespace<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;digit - ('0'..'9')<br>
+&nbsp;&nbsp;lowercase - ('a'..'z')<br>
+&nbsp;&nbsp;uppercase - ('A'..'Z')<br>
+&nbsp;&nbsp;&nbsp;&nbsp; letter - (lowercase or uppercase)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; id - (letter or '_')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lf - [Char(10)]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cr - [Char(13)]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eol - cr? lf<br>
+&nbsp;&nbsp;backslash - '\'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;quote - [']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;any - [any character]</tt></tt></td></tr></table></dd></dl>
+<p>
+</td></tr></table>
+
+<p><!--------------------------->
+<a name="20.  SlagDoc"></a>
+<table class='section'><th>20.  SlagDoc</th><tr><td class='tdsection'>
+
+Slag has an autodocumentation tool called "slagdoc", available in the root directory of the Slag distribution.  Run it without arguments - "slagdoc" - to see how to use it.
+<p>
+SlagDoc recognizes comments immediately following the first line of a type definition, a member variable declaration, or a method definition and generates documentation containing those comments.  No special tags are recognized.
+<p>
+Any comment that begins more than one space after the initial "#" is considered <i>indented</i> and is displayed in a monospace font.
+<p>
+See "standard.slag" for examples of writing SlagDoc comments.
+<p>
+</td></tr></table>
+
+</body>

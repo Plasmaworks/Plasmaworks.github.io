@@ -1,0 +1,832 @@
+<html>
+<head>
+  <title>Version History - Slag Plasmacore</title>
+</head>
+<body style="width:704; font-family:arial;">
+  <hr><font size="+2"><b>Slag Plasmacore Change Log</b></font><hr>
+
+  <p><h4>Plasmacore v0.23 (2008.10.17)</h4>
+  <ul>
+    <p><li>Plasmacore API
+      <ul>
+        <p><li>Added Application::language().String.  On Windows it always returns "english"; on the Wii it returns the regional language setting (see API reference).
+        <p><li>Added Application::platform().String.  Currently this can return "windows" or "wii".
+        <p><li>Added "preferred_resolution xxxx yyyy" option to "settings.txt" files.  A game will have its original display_size for drawing on but will select a fullscreen resolution of 'preferred_resolution' (if possible) to display it on.
+      </ul>
+
+      <p><li>Plasmacore Native Layer
+        <ul>
+          <p><li>Fixed bug in processing command line arguments in Plasmacore - they can now be supplied and will be stored in Global::command_line_args.
+          <p><li>Fixed startup window-centering bug.  Center position was getting set based off of the default display size (1280x1024), not the actual display size.
+        </ul>
+
+        <p><li><h4>Slag v0.23 (2008.10.17)</h4>
+  <ul>
+    <p><li>Slag Language
+      <ul>
+        <p><li>Removed '?' as a valid identifier character in favor of a '?' operator - see next item.
+        <p><li>Booleanizing operator - for any expression 'expr', "expr?" returns true if the expression is either true, yes, non-zero, or non-null depending on the expression type.  So if "list.count" returns an integer, "list.count?" is true when that integer is non-zero.  If 'img' is a reference, then "img?" is true when "img" is non-null.
+        <p><li>Removed unused keywords 'exposed' and 'threshold'.
+        <p><li>Changed "default" insertion markers (e.g. "$" or "$()" as opposed to "$(5.2)") to call Global.to_String(value) instead of Global.format_string(...).
+        <p><li>Changed keyword "interface" to be "requisite" instead.  A requisite class or method is never culled as dead code by the compiler in anticipation that it may be used by the runtime.
+      </ul>
+    <p><li>Slag Compiler
+      <ul>
+        <p><li>Fixed "prior" calls to work with complex expressions.
+        <p><li>Changed property initializer parameters to store values in left-to-right order instead of right-to-left - e.g. "method test(a,b,c)" stores property values in the order a,b,c instead of c,b,a.
+        <p><li>Fixed bug that was prematurely removing the bodies of methods (thought to be unreferenced) in certain conditions.
+        <p><li>Improved reported location of errors with "underlying" calls.
+        <p><li>Fixed bug preventing "underlying" statements from compiling when they were nested several levels deep.
+        <p><li>Fixed compiler crash when "notInstanceOf" is used.
+        <p><li>Compiler now strips aspect method tables of methods that are in common with root class Object.
+        <p><li>Fixed compiler crash when illegal chars were used in \uXXXX escape sequence.
+      </ul>
+    <p><li>Slag API
+      <ul>
+        <p><li>IndexedData (and List/String) objects now have method reverse_order() which return an iterator set up to read in reverse order.
+        <p><li>IndexedData and String (and List) types now have methods reversed() and shuffled() that return rearranged data.
+        <p><li>Lists of numbers and strings now have the method sorted() that returns a sorted duplicate of the list.
+        <p><li>Name change: SORT_ORDER is now SORT.
+        <p><li>Added IndexedData.from(Int32 n) (and List/String) that creates a reader starting at the specified index.
+        <p><li>Added IndexedData.from(Range&lt;&lt;Int32&gt;&gt; range) (and List/String) that creates a reader that reads a range of indices.
+        <p><li>Added System::stack_trace().String that returns a stack trace of the location at which it's called.
+        <p><li>Changed "Error : Object" to "Error : Exception : Object".  Throw/catch now requires type "Exception" but all built-in exceptions are still subclasses of "Error".
+        <p><li>String concatenation is now optimized to be 3 to 4 times faster than before.
+        <p><li>Semantics bug fix: bitwise '&amp;' and '|' applied to Boolean types no longer compiles to the same short-circuiting (lazy) evaluation as logical 'and' and 'or' operators.
+        <p><li>Improved string-to-Real64 parsing (previous output was inaccurate if either side of the decimal point was too large for an Int32).
+        <p><li>Added String.to_utf8().String and String::from_utf8(String).String.
+        <p><li>Added String.contains(String).Boolean 
+        <p><li>In the interests of speed, changed HashTable to just use the lower bits of a key's hash code instead of folding over the hash code bits.
+        <p><li>Changed ArrayType.copy_elements() to have fail-fast behavior - out of bounds errors are now thrown instead of being silently corrected.
+        <p><li>Removed Global::whole_part(Real64).Real64 (an alias of floor()) to streamline the API.
+        <p><li>Slightly refactored Pattern to better support specialization.  By overriding get_matcher_for_id() : you can create and return a custom PatternMatcher class for a given identifier.
+        <p><li>Added global convenience methods is_even(Int64/32) and is_odd(Int64/32).
+        <p><li>Added class BigInt that works similarly to Java's BigInteger.
+        <p><li>Added class IntervalTimer for quick and easy timing.  Usage:
+<pre>
+   local IntervalTimer timer()
+   sleep(1500)
+   println( timer )  # prints: 1.50 seconds
+</pre>
+        <p><li>Added IndexedData.format(String str_format[, String repeater_chars]) that makes it easy to format lists in variations of a simple style.  For example, given a list of integers, nums.format("{$[+$]}") would return {5+6+7+8+9}.
+        <p><li>Fixed bug in RewindableReader.consume(String).Boolean - if there are fewer characters left in the input than exist in the string, the method returns false instead of generating an internal exception.
+        <p><li>Added String.before_first(Char|String) as well as before_last, after_first, and after_last variants. Example: st = "abc.def.ghi"; st.before_first('.') == "abc"; st.after_last('.') == "ghi"
+        <p><li>Modified String methods to_Int64 and to_Int32 to accept an optional number base, e.g. "st.to_Int32(16)" converts a base 16 string representation into an Int32.
+      </ul>
+    <p><li>Slag VM
+      <ul>
+        <p><li>Fixed a possible garbage memory bug: if you accessed any element of a reference array without ever writing to it beforehand you might get a garbage reference.  Reference arrays keep track of the highest index that's been written to optimize garbage collection (esp. when used with arraylists), and faulty logic was used to reason that therefore the backing memory did not have to be cleared to begin with.  This is erroneous because an array-get completely ignores the highest-written index.
+        <p><li>Removed an irregular feature of the memory manager that skipped the first data collection.
+        <p><li>Refactored some overly complex code in SlagMM::end_collection().
+        <p><li>Fixed bug in right_rotated(Int64/32,Int32).
+        <p><li>Changed irregularities in mod when used with a negative divisor.  The new rule is simple: (a%b) is equivalent to (but not necessarily implemented as) "a - floor(a/b)*b" (where a/b is a real number division).  This means:
+          <ul>
+            <li>2 % 10 &rarr; 2
+            <li>-2 % 10 &rarr; 8
+            <li>-2 % -10 &rarr; -2
+            <li>2 % -10 &rarr; -8
+          </ul>
+      </ul>
+  </ul>
+  </ul>
+  </ul>
+
+  <p><h4>Plasmacore v0.22 (2008.07.25)</h4>
+  <ul>
+    <p><li>Slag API
+      <ul>
+        <p><li>Modified Scanner::consume_eol() to discard whitespace before checking for EOL.
+      </ul>
+    <p><li>Slag VM
+      <ul>
+        <p><li>Removed dependency on a Vista-specific network call.
+      </ul>
+  </ul>
+
+  <p><h4>Plasmacore v0.21 (2008.07.24)</h4>
+    <ul>
+      <p><li>Plasmacore API
+        <ul>
+          <p><li>The system_font can now be custom-loaded in the application's
+          init_object() method and the Plasmacore framework won't reload it.
+          <p><li>Added ColorGradient convenience class.
+          <p><li>Added Font::draw(Char,Vector2).Real64 that draws a character and returns its pixel width.
+          <p><li>Moved the loading of system_font to back before the application's init() is called.  If you wish to load the system font from an archive, it's now recommended that you open the archive by adding to the init_object() method.  For example:
+<pre>
+    class Game : Application
+      METHODS
+        method init_object:
+          open_archive( "gfx.zip" )
+
+        method init:
+          ...
+    endClass
+</pre>
+          <p><li>Changed all "intersect" methods (Line,Circle,etc) to be named "intersection_of".  Changed all "intersects" methods to be named "intersect".  With the adjusted terminology, "intersect" methods tell you if two shapes intersect (true or false) while "intersection_of" gives you the point or region of intersection.
+          <p><li>Added Global::intersect(Line,Circle).Boolean along with Global::intersect(Circle,Line).Boolean for convenience. 
+          <p><li>Changed fullscreen(Boolean) &rarr; set_fullscreen(Boolean) and fullscreen.Boolean &rarr; is_fullscreen.Boolean under the premise that command methods shouldn't appear as properties.
+        </ul>
+      <p><li>Plasmacore Native Layer
+        <ul>
+          <p><li>Prevented feeding negative clipping coordinates to DirectX after screen scaling.  This was causing it to not clip or draw correctly - this was the cause of the ghosted images around the system font when stretched to fullscreen.
+        </ul>
+        <p><ul>
+          <p><h4>Slag v0.21</h4>
+          <ul>
+            <p><li>Slag API
+              <ul>
+                <p><li>Added String::replace(Char,Char).String
+                <p><li>Added String::equals_ignore_case(String).Boolean
+                <p><li>Added default bitflag to BitFlags enumeration aspect - now, having "enum DIRS : BitFlags&lt;&lt;DIRS&gt;&gt;" with CATEGORIES "north, east, south, west" is equivalent to saying "north(1), east(2), south(4), west(8)".
+                <p><li>Added remove(DataType).Boolean to non-numerical, non-range-type lists as a convenience method that forwards the call to remove_value(DataType).Boolean.
+                <p><li>Added in more try/catch blocks into IndexedData to catch errors and re-throw them so the initial line number of the reported error is more accurate.
+                <p><li>Changed ArrayList get/set to check for upper-end OOB errors.  Previously they relied on the backing array to generate an error, which could lead to hard-to-find errors when the list.count &lt;= index &lt; list.capacity.
+                <p><li>Added conditional template directives [if type1 instanceof type2] and [if type1 notInstanceOf type2].
+                <p><li>Fixed bug in BitWriter so that the 16-bit Char values it writes to its backer have the uppper 8 bits cleared.
+                <p><li>Fixed bug that was interpreting arrays of Char and Byte as signed values.
+                <p><li>Fixed missing return bug on Global::to_String(Char ch,Int32 base) when base is other than 2, 10, or 16.
+                <p><li>Added String::begins_with(String).Boolean (replaces starts_with; the former method still exists but is now obsolete).
+                <p><li>Added IndexedData::end(n) which returns values relative to the end of the a list.  "list.end(0)" returns the last item, "list.end(-1)" returns the next to last, etc.
+                <p><li>Added poll-driven TCP/IP socket support.  See ServerSocket and Socket classes in the API for details.
+              </ul>
+            <p><li>Slag VM
+              <ul>
+                <p><li>Main VM code execution loop now checks a flag (IP == 0) instead of relying on an exception to kick execution out of the loop and back to native code.  The throw..catch sequence was reliably being corrupted by concurrent thread execution on the Wii, and so it seems likely that other platforms could have the same issue. 
+                <p><li>Compiler now catches illegal use of a "this" reference in a class method. 
+                <p><li>Reduced # of ETC opcodes through consolidation (most IF variants to a single form, etc.).
+                <p><li>Changed the way that native method implementations are actually hooked in.  With the new system, native implementations can be specified for any method, whether originally declared native or not.
+                <p><li>Changed aspect call mechanism to reduce the size of aspect method tables.  Previously all aspects were added to the aspect call tables; now only the aspects types that have calls made to them are put in the call tables.
+              </ul>
+            <p><li>Slag Compiler
+              <ul>
+                <p><li>Compiler now gives a better error message when '&amp;&amp;' or '||' is used instead of 'and' or 'or'.
+                <p><li>Ternary values are now automatically coerced into Boolean values for any expressions that require Boolean values.  "yes" becomes "true", "no" and "void" become "false".  With this change, Ternary values can be thought of as Boolean values with two variations of "false".  As an example, a ServerSocket's is_connected method returns "true" if it's connected, false if the connection was closed, or "void" if the connection was never established.  In this context it is reasonable to say "if (server_socket.is_connected) ..." before polling for new connections.
+              </ul>
+            <p><li>Slag Language
+              <ul>
+                <p><li>Changed multi-line comment to be #{...}# instead of #(...)#.  Rationale: 1) old-style comments were frequently create by mistake as an argument list was commented out, and 2) Curly braces are consistently used as "container markers" elsewhere in slag (e.g. defining list literals).
+                <p><li>Removed unused keywords "assert", "ensure", and "require" from scanner and parser.  These were originally intended to support a compile mode that enforced programming by contract, but after consideration I'd rather rely on separate unit tests.
+                <p><li>Question marks are now supported in identifier names.  The suggested use is to put them on the end of query methods (Ruby style).  A thorough revamp of the API was considered but ultimately decided againt.  Slag's ability to overlay transparent accessor methods on properties makes it hard to establish a question mark convention that makes sense for both reading and writing.  For example, to determine if a socket was connected you say "is_connected".  It would make sense to say "is_connected?".  But then how about the property that indicates whether or not a node has been visited.  You would query that as "is_visited?", which makes sense, but then that might be the actual name of the property and so you would say "is_visited? = true", which muddies the use of the question mark so it's no longer a hint that a query is being performed at all.
+              </ul>
+            <p><li>Tools
+              <ul>
+                <p><li>Bug in SlagDoc was causing it to miss certain methods (notably "new_XX") when it was listing the Global methods that operated on a given compound.  This is fixed.
+                <p><li>New tool "etc2cpp" allows a compiled ETC file to be cross-compiled to C++ code.  The resulting code must be compiled in with the original VM source code.
+                <p><li>Win32 slagdoc.exe is now cross-compiled into C++ and runs notably faster.
+              </ul>
+          </ul>
+        </ul>
+    </ul>
+
+  <p><h4>Plasmacore v0.20 (2008.06.17)</h4>
+    <ul>
+      <p><li>Slag v0.20
+        <ul>
+          <p><li>Slag Compiler
+            <ul>
+              <p><li>When class Alpha has a class property "a" and class Beta extends Alpha, references to "Beta.a" were mistakenly referring to a different variable than "Alpha.a".  This has been a bug for a while but was only revealed in v0.19 when extended class initializers no longer initialized inherited variables.  This is now fixed; the compiler converts calls to "Beta.a" to be "Alpha.a" instead.
+            </ul>
+          <p><li>Slag API
+            <ul>
+              <p><li>Added String::word_wrap(Int32 width).String[]
+            </ul>
+        </ul>
+
+      <p><li>Plasmacore API
+        <ul>
+          <p><li>CompositeImage objects were not drawing correctly; this is fixed.
+        </ul>
+    </ul>
+
+  <dl><h4>Plasmacore v0.19 (2008.06.16)</h4>
+    <ul>
+      <p><li>Slag v0.19
+      <ul>
+        <p><li>Slag Language
+          <ul>
+            <p><li>You can now augment classes using aspect layering rules.  "augment SomeClass" works as before (adding additional content that shouldn't pre-exist), but "underlying augment SomeClass" and "overlaying augment SomeClass" are layered.  For example, this code:
+
+    <p><pre>
+        overlaying aspect MainDebug
+          METHODS
+            method init:
+              println( "+init" )
+              underlying
+              println( "-init" )
+        endAspect
+
+        augment Main : MainDebug;
+    </pre>
+            <p>can now be written like this:
+
+    <p><pre>
+        overlaying augment MainDebug
+          METHODS
+            method init:
+              println( "+init" )
+              underlying
+              println( "-init" )
+        endAugment
+    </pre>
+            <p><li>Renamed member categories "VARS" and "CLASS_VARS" to be "PROPERTIES" and "CLASS_PROPERTIES".  The old names are still accepted.
+            <p><li>Fixed class member initializations in extended classes so that class properties of base classes aren't initialized multiple times.  Note: programmers may define their own <i>init_class()</i> class methods; contained code will be executed at program startup and after class property initializations have been performed.
+            <p><li>Reworked the internal object-initialization nature and order of operations.  Before, each object had an internal (hidden) <i>init_object()</i> method that initialized all properties, including inherited properties.  Now, each class's <i>init_object()</i> method starts with a call to <i>prior.init_object()</i> and then only initializes the newly-declared properties (and not inherited ones).  Programmers may define their own <i>init_object()</i> methods; the contained code will be inserted after the automatic <i>prior</i> call and class property initialization.  For example, the compiler converts this:
+    <pre>
+      class Alpha
+        PROPERTIES
+          a = 5 : Int32
+      endClass
+
+      class Beta : Alpha
+        PROPERTIES
+          b = 5 : Int32
+
+        METHODS
+          method init_object:
+            println( "Hello World" )
+      endClass
+    </pre>
+
+    into this:
+
+    <pre>
+      class Alpha : Object
+        PROPERTIES
+          a : Int32
+
+        METHODS
+          method init_object:
+            prior.init_object
+            a = 5
+      endClass
+
+      class Beta : Alpha
+        PROPERTIES
+          b = 5 : Int32
+
+        METHODS
+          method init_object:
+            prior.init_object
+            b = 5
+            println( "Hello World" )
+      endClass
+    </pre>
+
+            <p><i>init_object()</i> methods are automatically called when an object is created and before the regular <i>init()</i> methods.
+            <p><li>When the ETC program file is written, classes are now ordered according to base class dependency.  This makes it more likely that class initialization code will happen in an order that doesn't cause problems.
+            <p><li>Added "limited" method qualifier that prevents a method from being inherited.  The method can still be accessed as a <i>prior</i> call.
+            <p><li>Variable qualifiers <i>readOnly, writeOnly,</i> and <i>private</i> are now enforced.  <i>private</i> works like Java's <i>protected</i>.  <i>readOnly</i> means public read and private write; <i>writeOnly</i> is the opposite.
+            <p><li>Method qualifier <i>private</i> is now enforced.  This behaves like <i>protected</i> does in Java.
+          </ul>
+        <p><li>Slag API
+          <ul>
+            <p><li>Fixed bugs in BitReader::read_Int64(), read_Int64_low_high, and fill_buffer().
+            <p><li>In light of the improved call resolution in compiler, removed specific standard library methods wherever a more general method is compatible.  E.g. println() with Int8, Int16, and Int32 removed in favor of println(Int64).
+            <p><li>Removed "Box" class from API (it's doubtful anyone uses it).
+            <p><li>Added an "InvalidStateError" class.
+            <p><li>Added a "LinkedList" class that, like ArrayList, is compatible with aspect type List.  Usage example: "LinkedList&lt;&lt;Int32&gt;&gt; nums = {3,4,5}".
+            <p><li>Class String now throws an error when its "data" char array is accessed via a property-get.
+            <p><li>Fixed Scanner to work with negative integers as well as Int64 values.
+            <p><li>Changed Scanner::discard_ws to Scanner::consume_ws().Boolean.
+            <p><li>Added Scanner::discard_eols (Boolean), Scanner::consume_eol().Boolean, and Scanner::consume_eols().Boolean.
+            <p><li>Fixed NumberConversions::parse_Int32/Int64 to work with positively signed integers (e.g. "+32").
+            <p><li>Fixed BitReader::has_another(Int32) to return correct values for n_bits&gt;8.
+            <p><li>Added HashTable::clear().
+            <p><li>Added an enumeration extension aspect called "BitFlags" that works like this:
+    <pre>
+      enum DIRECTION : BitFlags&lt;&lt;DIRECTION&gt;&gt;
+        CATEGORIES
+          north(1), east(2), south(4), west(8)
+      endEnum
+
+      ...
+      local DIRECTION d = DIRECTION.north | DIRECTION.east
+      println( d == DIRECTION.north )         #prints: false
+      println( d.includes(DIRECTION.north) )  #prints: true
+      println( d )        #prints: north,east
+      println( d.flags )  #prints: 3
+      d &amp;= !DIRECTION.north
+      println( d )  #prints: east
+      println( d == DIRECTION.east )  #prints: true
+      println( d.flags )  #prints: 2
+    </pre>
+            <p><li>Changed all string-formatting methods to be named "format_string" instead of
+            just "format" to leave the simpler name free for variable use.
+            <p><li>Changed ArrayList get() and set() methods to catch an array-generated
+            OutOfBoundsError and re-throw the error themselves for a more useful line number
+            in the error reporting.
+          </ul>
+        <p><li>Slag Compiler
+          <ul>
+            <p><li>Improved method call resolution when multiple compatible methods are available.
+            A call to fn(Int32,Int64) will now prefer fn(Int64,Int64) over fn(Int32,Int32) and
+            a call to fn(Byte,Byte) will now prefer fn(Int32,Int32) over fn(Int64,Int64).
+            <p><li>Ambiguous calls to Global methods now report as such rather than "no such element in current class".
+            <p><li>Generated call to "to_list" has been broken for a while; changed to proper "to_List".
+            <p><li>Local variable names in base classes longer conflict with member variables of the same name in extended classes.
+            <p><li>Added check to prevent compounds from being augmented.
+            <p><li>Added support for large literal lists (previously the compiler had a stack overflow if there were more than ~850 elements).
+          </ul>
+          <p><li>VM
+            <ul>
+              <p><li>Changed fast heap to use 'new' and 'delete' rather than 'malloc' and 'free'. 
+              <p><li>Signficantly reduced the number of string allocations necessary to load an ETC file.
+            </ul>
+      </ul>
+
+      <p><li>Plasmacore API
+        <ul>
+          <p><li>Added CompositeImage::init(Bitmap) and ::unload()
+          <p><li>Added CompositeImage::init(Vector2 size) that creates a
+          composite image with a given size but no sub-image parts - those
+          may be added after.
+          <p><li>Added CompositeImage::add(GenericImage img,Vector2 pos) - adds
+          the given GenericImage as a part of the whole with its handle modified
+          by "-pos".
+          <p><li>Changed "CommonImage" to "GenericImage".
+          <p><li>Moved angle, hflip, and vflip properties from Image into GenericImage, although CompositeImage objects do not currently respect those properties.
+          <p><li>Added multiply and divide methods back in for various shape types (and color types too).
+          <p><li>Added ceiling(Vector2).
+          <p><li>Re-added Image::draw(Real64,Real64) due to popular demand.
+          <p><li>Sound::volume (etc.) property-set methods now affect all copies of the same sound.
+          <p><li>Changed image loading for new Image and Bitmap objects to search for the following variations of 'filename':
+<pre>
+  filename
+  filename.ext (.ext = [.png|.jpg|.jpeg])
+  data/filename
+  data/filename.ext
+</pre>
+          <p>Therefore you can now say 'img = Image("sprite")' if your image path is "data/sprite.png".
+
+          <p><li>Changed sound loading for new Sound objects to search for the following variations of 'filename':
+<pre>
+  filename
+  filename.ext (.ext = [.ogg|.wav|.mod|.flac|.aiff])
+  data/filename
+  data/filename.ext
+</pre>
+
+          <p><li>Added support for ZIP archives:
+<ul>
+  <p><li>Call Application.open_archive(filename) as many times for as many different ZIP files as you like.  open_archive("images") is sufficient to find the file "data/images.zip".
+  <p><li>Each opened ZIP file is entirely loaded (cached) into memory without being uncompressed.
+  <p><li>Subsequent files opened for reading in the normal way (including image and sound files) will be loaded from one of the cached zip files if possible.  If the archive is "images.zip" and contains "images/sprite.png", then open_archive("images") followed by Image("images/sprite") will work.
+  <p><li>Call Application.close_all_archives() to close the archives and free up the memory used by them.
+</ul>
+        </ul>
+      <p><li>Plasmacore Native Layer
+        <ul>
+          <p><li>DX: once again removed the (-0.5) offset from drawing line and point
+          drawing - but left it on solid and textured quad fill (texture addressing compensation).  
+          All pixels should now be drawing at correct coordinates.
+          <p><li>Improved handling of display resolutions larger than supported by hardware.
+          <p><li>Fixed some bugs with fullscreen startup vs windowed-to-fullscreen.
+          <p><li>Fixed "garbage" problem encountered when loading color-indexed PNG's with transparency.
+          <p><li>Fixed sound-system crash that would occur on some multi-threaded systems (race-condition-related).
+        </ul>
+
+      <p><li>Miscellaneous
+        <ul>
+          <p><li>Changed default project name from "game.slag" to "main.slag" in build.xml.
+        </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Plasmacore v0.18 (2008.02.29)</h4>
+    <ul>
+      <p><li>API
+        <ul>
+          <p><li>Added a CompositeImage class that should be used for loading and displaying
+          large bitmaps (larger than 512x512).
+          <p><li>Added (tu,tv) texture coordinate control to Image objects.  Examples:
+<p><pre>
+    local Corners existing_corners = img.uv
+    img.uv = Corners( 1.0/128.0, 1.0/128.0, 127/128.0, 127/128.0 )
+</pre>
+          <p>or
+<p><pre>
+    img.crop(1)  # take off a 1-pixel border
+    size = Vector2(128,128)  # restore nominal size from 126x126 to 128x128
+</pre>
+          <p><li>Added Image::alpha.Int32 and Image::alpha(Int32) helper methods to get and set
+            the alpha component of an image's color.
+            <p><li>Removed a couple of draw(Real64,Real64) methods in lieu of adding them to everything; the official convention is that any methods accepting an (x,y) coordinate (and intended for general use) should accept a Vector2 instead.  If you want to quickly patch existing source code instead of rewriting the parts that depend on draw(Vector2), add this in to your program:
+<p><pre>
+    augment Image
+      METHODS
+        method draw( Real64 x, Real64 y ):
+          draw( Vector2(x,y) )
+    endAugment
+</pre>
+          <p><li>Changed the sound system slightly.  Sound::play() will no long play paused
+          sounds; Sound::resume() or SoundManager::resume() must be used for that.
+          <p><li>A trace message is now generated upon failure to load a sound.
+          <p><li>Added NativeAudio::audio_supported().Boolean.
+          <p><li>Added Image::alpha_source property-set.
+          <p><li>Added contract(Rect,Vector2).Rect and expand(Rect,Vector2).Rect.
+          <p><li>Added operator overloads for -, /, and % involving (Real64,Vector2) (e.g. 5-Vector2(2,4)=Vector2(3,1) .  Operators for + and * already existed.
+        </ul>
+      <p><li>VM
+        <ul>
+          <p><li>Hooked in native calls to methods supporting absolute_filepath()
+          and related.  These methods were in the API specification last time
+          but weren't enabled correctly.
+        </ul>
+      <p><li>General
+        <ul>
+          <p><li>Plasmacore now includes a file "data/sample_license.txt" that should
+          be adjusted and renamed as "data/license.txt".  It contains mandatory
+          LGPL notices for the SDL and Audiere libraries and you can add your own
+          notices to it as well.
+          <p><li>Plasmacore now halts with an error message if the system font
+          fails to load (since this pretty much screws up any other kind of error
+          reporting).
+          <p><li>Changed software alpha blending (Bitmap) to use actual multiplications
+          rather than an outdated lookup table.
+          <p><li>Changed sample_build.xml slightly - regular compile and run doesn't pack the .etc
+          into the .exe.  A new build target called "release" does that as well as attempts
+          to IconSmash "data/icon.ico" into "dist/projectname.exe".
+          <p><li>Changed the default texture addressing mode to CLAMP instead of WRAP - this fixes
+          most problems with the edges of images "bleeding" when stretched.  There is now
+          a RENDER flag "texture_wrap" that may be set to allow texture wrapping.
+          <p><li>Added Image convenience properties for each RENDER flag.  For example, you can
+          say "img.overexpose=true" instead of saying "img.render_flags |= RENDER.overexpose".
+        </ul>
+        <p><li><dl>Slag v0.18
+    <ul>
+      <p><li>API
+        <ul>
+          <p><li>random_Boolean was generating an error; this is fixed.
+          <p><li>Fixed a method signature conflict bug when lists were created to hold type Object.
+          <p><li>Fixed bug that was corrupting String::to_Real64() conversions when used with negative values.
+          <p><li>Fixed (n + "") so it works with all primitive types.
+          <p><li>Added more support for Global "Real32" ops (e.g. abs(Real32), floor(Real32), etc.)
+          <p><li>Fixed BitWriter bug that that wrote out all zero bits for 32-bit values.
+
+        </ul>
+      <p><li>Compiler
+        <ul>
+          <p><li>Fixed a compiler crash when there were no cases in a 'which'.
+          <p><li>Fixed a compiler bug that didn't allow for comments immediately after a 'which' keywword.
+          <p><li>Member variable declarations can now be on multiple lines if the previous line ends with a comma.
+          <p><li>Fixed error context position marker ("^") to point to the correct place when a long line has had its beginning truncated.
+          <p><li>Added validation to ensure that parameter names don't conflict with member names.
+          <p><li>Now parameters and local vars in class methods are only checked for conflict with existing class members (not object members).  Params and locals in object methods are checked for conflicts with all members.
+          <p><li>Improved handling of 8-digit hex numbers.  The compiler now tracks these as unsigned numbers and allows them to be cast to postive Int64 values or, if no casts are encountered, mashes them into an Int32.  Before, "0x1122334455667788 &amp; 0x00000000ffffffff" was "0x1122334455667788" (unchanged) because the second operand was being treated as "-1" and, cast to Int64, was still "-1".
+          <p><li>Removed a bug where a non-nil "instanceOf" nil return value was crashing.
+        </ul>
+      <p><li>VM
+        <ul>
+          <p><li>Fixed a significant bug where most Real32 operations were being loaded as Real64 operations.
+        </ul>
+    </ul>
+  </dl>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.17 (2008.02.14)</h4>
+    <ul>
+      <p><li>General
+        <ul>
+          <p><li>Advanced version number to 0.17 to synchronize with Slag.
+          <p><li>Slag-specific changes are now mirrored to this file.  This
+          update lists Slag changes since v0.14.
+          <p><li>Cleaned up file structure a bit.  Renamed "res" to "data".  Files
+          in there can now be loaded with "data/file.png" rather than "data/res/file.png".
+          If you would like your assets to still be in "data/res", just put them
+          in a "res" subdirectory inside of "data".
+        </ul>
+      <p><li>Native Layer
+        <ul>
+          <p><li>Fixed crash if fullscreen is chosen at startup with an odd screen resolution.
+          <p><li>Windowed mode now starts in the center of the screen.
+          <p><li>Borderless windows are possible via settings.txt.
+        </ul>
+      <p><li>API
+        <ul>
+          <p><li>Added Image::redefine(Bitmap) that writes Bitmap data to an existing
+          image without reallocating video memory.
+        </ul>
+      <p><li><dl><h4>Slag v0.17 (2008.02.13)</h4>
+        <ul>
+          <p><li>Compiler
+            <ul>
+              <p><li>Fixed compiler crash on an includeDir with a non-existent path.
+              <p><li>Fixed compiler crash when creating a new object as a default parameter in a call with an object context specified (needed to wrap parameter in an EXPRESSION node to reset the current context type).
+            </ul>
+          <p><li>VM
+            <ul>
+              <p><li>Fixed crash an integer mod by-zero error.
+              <p><li>Rethought who sets the execution_ip of an Error when it's created - if the VM initiates creation of the error, the VM sets the IP.
+            </ul>
+          <p><li>API
+            <ul>
+              <p><li>Added File object commands is_directory().Boolean, directory_list().String[], absolute_filepath().String, path().String, absolute_path().String, and filename.String() (in Slag a path + filename = filepath).
+              <p><li>Created System class with class method execute(String cmd_line).Process. 
+              <p><li>Created Process class with methods active().Boolean, wait_for_exit().Int32, and exit_code().Int32.
+            </ul>
+        </ul>
+      </dl>
+
+      <dl><h4>Slag v0.16 (2008.02.10)</h4>
+        <ul>
+          <p><li>API
+            <ul>
+              <p><li>Fixed a bug handling negative signs in NumberConversions::parse_Int32().
+              <p><li>Added String::to_Int64 and NumberConversions::parse_Int64().
+              <p><li>Fixed slagc error calling "EtcSmash.exe".
+              <p><li>Fixed two null pointer exceptions in slagc.
+            </ul>
+        </ul>
+      </dl>
+
+      <dl><h4>Slag v0.15 (2008.02.09)</h4>
+        <ul>
+          <p><li>API
+            <ul>
+              <p><li>Added type CastReader : InputConverter that wraps a reader and casts values as it reads.
+            </ul>
+          <p><li>General
+            <ul>
+              <p><li>Fixed a SmashExe process problem (always attempted to copy "slag".exe) that was messing up Plasmacore.
+              <p><li>Applied the Apache Licence 2.0 to the VM and compiler.
+            </ul>
+        </ul>
+      </dl>
+
+      <dl><h4>Slag v0.14 (2008.02.08)</h4>
+        <ul>
+          <p><li>Compiler
+            <ul>
+              <p><li>Failed member accesses were reported in a context of class Global rather than their actual context.  This is fixed.
+              <p><li>Fixed reversed parameter on new_Quad method.
+              <p><li>Fixed crash on primitive typecast used as value declaration, e.g. "Int32()".
+              <p><li>Added a "-thorough" flag that attempts to declare/instantiate one of every class (non-templated or templated with default parameters) to test more thoroughly for parse errors.
+              <p><li>Fixed a bug when default parameters are different than but compatible with their types ("Real64 x=1") caused a compile error.
+              <p><li>Fixed a runtime bug that caused a null pointer exception when a "try/endTry" contained no "catch" blocks.
+              <p><li>Added "widening cast" opcode so that aspect types can be changed to base type Object for call signature purposes.
+              <p><li>Any aspect call that exactly matches a method in class Object is converted into a dynamic call in class Object.
+              <p><li>Fixed bug that didn't allow compound property access methods to be used with "+=" syntax.
+              <p><li>Common path prefixes across all source files are removed when source filenames are saved to the compiled file.  For example, if my two files are "c:\proj\game.slag" and "c:\proj\game\state\state.slag" they will be changed to "game.slag" and "state\state.slag".
+              <p><li>Added support for "infinity" and "NaN" keywords.
+            </ul>
+          <p><li>API
+            <ul>
+              <p><li>Added multiply and divide operators for Degrees/Radians with Real64 values.
+              <p><li>Added concurrent list modification detection.
+              <p><li>Added Global::sleep(Int32 ms).
+              <p><li>Added Global::is_NaN(Real64/Real32).Boolean
+            </ul>
+          <p><li>VM
+            <ul>
+              <p><li>Fixed stack frames after a null pointer exception in case the method continues
+              rather than returning.
+            </ul>
+          <p><li>General
+            <ul>
+              <p><li>Added detection for integer divide-by-zero and a corresponding DivideByZeroError throw.
+              <p><li>Added "SmashEtc.exe" tool that can be used to embed a .etc file into a a Slag or
+              Plasmacore virtual machine .exe.
+            </ul>
+        </ul>
+      </dl>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.10 (2008.02.10)</h4>
+    <ul>
+      <p><li>General
+        <ul>
+          <p><li>Incorporates Slag v0.16 fixes.
+        </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.09 (2008.02.09)</h4>
+    <ul>
+      <p><li>General
+        <ul>
+          <p><li>Fixed a problem where slagc was hard-coded to use EtcSmash with slag.exe and not plasmacore.exe.
+        </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.08 (2008.02.08)</h4>
+    <ul>
+      <p><li>API
+        <ul>
+          <p><li>Calling clear_display is no longer necessary if you want to clear the screen to black.  The native layer clears it to black already.
+          <p><li>Removed complicated CoordTransform &amp; OriginTransform in favor of simpler 'origin' vector.
+          <p><li>Added shape Circle, enclose() that encloses other shapes in circles, revamped various shape methods.
+          <p><li>Added smart and flexible fullscreen toggling.
+          <p><li>Fixed bugs in prepping fonts with linear filtering; switched system_font to use linear filtering.
+          <p><li>Image load errors are caught and traced instead of throwing an Error.
+          <p><li>Added "mouse_visible" and "mouse_capture" write-only properties to class Application.
+          <p><li>If a keypress results in ALT+F4 or ALT+ENTER, the key_press, keystroke, and key_release events are suppressed.
+          <p><li>Added Application::window_title(String)
+          <p><li>Fixed bug where mouse_present events were being dispatched but the mouse_present state variable wasn't being set.
+          <p><li>draw(Rect) was effectively adding another pixel to the dimensions; this is fixed.
+          <p><li>Improved display of uncaught errors.
+          <p><li>Added "hflip" and "vflip" boolean properties to images.
+          <p><li>Added component_along_axis(Vector2 v,Vector2 axis).Vector
+          <p><li>Added project_onto_axis(Vector2 pt, Line axis).Vector
+          <p><li>Added clamp_to_line(Vector2 pt,Line line).Vector
+          <p><li>Added intersection_of(Line line1, Line line2).Vector2
+        </ul>
+
+      <p><li>Native Layer
+        <ul>
+          <p><li>Clears screen to black before calling the application's draw().
+          <p><li>Added default Plasmaworks icons; other icons may be inserted into
+          the executable using the IconSmash program in the bin directory.
+        </ul>
+      <p><li>General
+        <ul>
+          <p><li>Compiled etc files are now bundled in with the game executable.
+        </ul>
+    </ul>
+  </dl>
+
+
+  <dl><h4>Slag Plasmacore v0.07 (2008.01.23)</h4>
+    <ul>
+      <p><li>API
+        <ul>
+          <p><li>When errors are caught by the framework it now prepends the error type to the error message.
+          <p><li>Images now have class properties handle_policy, color_policy, and render_flags_policy that specify the initial values for the handle, color, and render_flags properties of new Image objects.
+          <p><li>Added input.mouse_button_state[1..9] that can be polled.
+          <p><li>Added audio support with class Sound.
+          <p><li>Anything printed to stdout (e.g. println) now becomes a trace message instead of halting the program.
+        </ul>
+      <p><li>Build System
+        <ul>
+          <p><li>Streamlined the ant build file "build.xml".
+        </ul>
+      <p><li>Native Layer
+        <ul>
+          <p><li>Fixed crash when more than 4 joysticks were connected.  Now, any number of joysticks are supported.
+        </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.06 (2008.01.15)</h4>
+    <ul>
+      <p><li>Compiler
+        <ul>
+          <p><li>Changed naming convention so that type names are always capitalized in identifiers while maintaining wide_names.  to_string is now to_String, newColor is now new_Color, etc.
+        </ul>
+        <ul>
+          <p><li>A recent compiler change (in 0.10) sometimes created an infinite recursion instead of generating a compile error (a context switch to type Global was being performed and recursed on without verifying the context was not already Global).  This is fixed.
+        </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.05 (2008.01.14)</h4>
+    <ul>
+      <p><li>Slag Language
+      <ul>
+        <p><li>Incorporates Slag v0.11
+      </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.04 (2008.01.13)</h4>
+    <ul>
+      <p><li>API
+      <ul>
+        <p><li>Added "fullscreen" property to Global.  Its value reflects the
+        current mode and setting it will change modes.
+        <p><li>ALT+ENTER now toggles between fullscreen and windowed mode
+          (via Application::on_toggle_fullscreen).
+        <p><li>ALT+F4 now exits the program (via Application::on_exit_request).
+      </ul>
+      <p><li>Native layer
+      <ul>
+        <p><li>Added separate vertex buffers for textures and graphics
+        primitives so that Plasmacore will work on Parallels (Windows emulator
+        for Mac).
+        <p><li>Fixed crashes on garbage collection (detailed in Slag language changes).
+        <p><li>Joystick input is now supported.  Try the sample game with a joystick
+        and see game.slag to get an idea of how it works.
+      </ul>
+      <p><li>Slag Language
+      <ul>
+        <p><li>Incorporates Slag v0.10
+      </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.03 (2007.12.07)</h4>
+    <ul>
+      <p><li>Native layer
+      <ul>
+        <p><li>Added separate vertex buffers for textures and graphics
+        primitives so that Plasmacore will work on Parallels (Windows emulator
+        for Mac).
+      </ul>
+      <p><li>API
+      <ul>
+        <p><li>Changed base class "PCoreApp" to "Application" instead.
+      </ul>
+    </ul>
+  </dl>
+
+  <dl><h4>Slag Plasmacore v0.02 (2007.11.04)</h4>
+    <ul>
+      <p><li>API
+      <ul>
+        <p><li>Since native layer sends mouse movement info every update, fixed 
+        mouse event dispatcher to only broadcast movement events if the position
+        has actually changed.
+      </ul>
+      <!--
+      <p><li>VM
+      <ul>
+        <p><li>
+      </ul>
+      -->
+      <p><li>Slag Language
+      <ul>
+        <p><li>Incorporates Slag v0.08
+      </ul>
+    </ul>
+  </dl>
+
+  <hr>
+
+  <dl><h4>Slag Plasmacore v0.02 (2007.11.04)</h4>
+    <ul>
+      <p><li>API
+      <ul>
+        <p><li>Changed naming convention of Vector2 methods to be "magnitude_of"
+               instead of "get_magnitude", etc.  "abs" and "floor" remain the same.
+        <p><li>Fixed clear_display to default to opaque black instead of semi-transparent
+        <p><li>Changed event handler names from:
+<pre>
+  on_key_pressed
+  on_key_typed
+  on_key_released
+  on_mouse_button_pressed
+  on_mouse_button_released
+</pre>
+        <p>to
+<pre>
+  on_key_press
+  on_keystroke
+  on_key_release
+  on_mouse_button_press
+  on_mouse_button_release
+</pre>
+      </ul>
+      <p><li><i>clipping_region</i> is a Rect that may be assigned a value to actually
+      change the viewport.
+      <p><li><i>window_size</i> and <i>display_size</i> are Vector2 values that describe
+      the total window/screen area and the client drawing area, respectively.
+      <p><li>Added <i>on_mouse_present</i> and <i>on_mouse_absent</i> MouseListener methods.
+      <!--
+      <p><li>VM
+      <ul>
+        <p><li>
+      </ul>
+      -->
+      <p><li>Slag Language
+      <ul>
+        <p><li>Incorporates Slag v0.08
+        <p><li>API
+        <ul>
+          <p><li>In v0.07 the definition of String::create_reader was changed
+            in a way that caused a syntax error.  It has been reverted to its 0.06 definition.
+          <p><li>Added String::last_index_of( Char ) and last_index_of( String )
+          <p><li>Added Array and List methods indices() and reverse_indices()
+                 that return a readable range object.
+           <p><li>Added an aspect "RequiresCleanup".  If you incorporate it,
+           "method cleanup:" will be called when there are no references to
+           the object and it's about to be freed.
+        </ul>
+        <p><li>Compiler
+        <ul>
+          <p><li>Added a "-dest_path path" option.
+        </ul>
+        <p><li>VM
+        <ul>
+          <p><li>Fixed force_garbage_collection to be a native method instead
+          of an empty method so that it actually does something.
+          <p><li>Added support for RequiresCleanup::cleanup() as described
+          above.
+        </ul>
+        <p><li>Language
+        <ul>
+          <p><li>Added a "downTo" range operator.  "5 downTo 1" is the same
+          as saying "5..1 step -1".  
+          <p><li>The official symbols for the other range operators are "upTo",
+          "upToLessThan", and "downToGreaterThan".  Symbols "..", "..&lt;", and
+          "..&gt;" are now officially endorsed shorthand notations.  "downTo" has
+          no shorthand equivalent.
+        </ul>
+      </ul>
+    </ul>
+  </dl>
+
+</body>
+</html>
+
